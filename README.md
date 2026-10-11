@@ -28,7 +28,7 @@ It's plain HTML, CSS and JS with no framework. Open `index.html` directly, or ho
 
    `node scripts/build-tokens.mjs` generates `assets/css/tokens.css` from it. You can bring the JSON into Figma with a token-import plugin such as Tokens Studio.
 2. **Auto layout.** All spacing between elements uses flex/grid `gap`, never margins between siblings.
-3. **Text styles.** One typeface, Golos Text (designed with Cyrillic in mind), on a fixed type scale: display, h1–h4, lead, body, small, label and stat.
+3. **Text styles.** One typeface, Trebuchet MS (preinstalled on Windows and macOS; Fira Sans from Google Fonts as the fallback elsewhere), on a fixed type scale: display, h1–h4, lead, body, small, label and stat.
 4. **Components and variants.** Class names match Figma component names:
    - Button, Link-arrow, Tag, Pill
    - Insight card (default/lead), Art panel (navy/teal/gold)
