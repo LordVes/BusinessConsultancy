@@ -25,9 +25,32 @@
     navList.addEventListener("click", (e) => { if (e.target.closest("a")) setOpen(false); });
   }
 
+  // Mega menus: one open at a time; click to toggle, Escape or outside click closes.
+  const triggers = document.querySelectorAll(".nav__trigger");
+  const closeAll = (except) => triggers.forEach((t) => {
+    if (t === except) return;
+    t.setAttribute("aria-expanded", "false");
+    document.getElementById(t.getAttribute("aria-controls")).hidden = true;
+  });
+  triggers.forEach((t) => {
+    t.addEventListener("click", () => {
+      const open = t.getAttribute("aria-expanded") !== "true";
+      closeAll(t);
+      t.setAttribute("aria-expanded", String(open));
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !open;
+    });
+  });
+  document.addEventListener("click", (e) => { if (!e.target.closest(".nav__item")) closeAll(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const open = [...triggers].find((t) => t.getAttribute("aria-expanded") === "true");
+    closeAll();
+    if (open) open.focus();
+  });
+
   // Methods filter.
-  const chips = document.querySelectorAll(".chip[data-filter]");
-  const methods = document.querySelectorAll(".method[data-area]");
+  const chips = document.querySelectorAll("[data-filter]");
+  const methods = document.querySelectorAll("[data-area]");
   const status = document.getElementById("filter-status");
   chips.forEach((chip) => {
     chip.addEventListener("click", () => {

@@ -9,7 +9,7 @@
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Spectral:ital,wght@0,500;0,600;0,700;1,500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/styles.css">
   <script>try{var t=localStorage.getItem("msp-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
@@ -27,58 +27,149 @@
   </svg>
   <a class="skip-link" href="#main">Към съдържанието</a>
 
+  <div class="utility">
+    <div class="container utility__inner">
+      <span class="utility__note">Стратегия за малкия и средния бизнес в България</span>
+      <div class="utility__links">
+        <a href="podhod.html">За МСП Компас</a>
+        <a href="kontakti.html">Контакти</a>
+        <span aria-label="Език: български">БГ</span>
+      </div>
+    </div>
+  </div>
+
   <header class="site-header">
     <div class="container site-header__inner">
       <a class="brand" href="index.html" aria-label="МСП Компас, начало">
         <svg class="brand__mark" aria-hidden="true"><use href="#mark"/></svg>
-        <span class="brand__text">
-          <span class="brand__name">МСП Компас</span>
-          <span class="brand__sub t-label">MSP Compass</span>
-        </span>
+        <span class="brand__text"><span class="brand__name">МСП Компас</span><span class="brand__sub">MSP Compass</span></span>
       </a>
       <nav class="nav" aria-label="Основна навигация">
         <ul class="nav__list" id="nav-list" role="list" data-open="false">
-            <li><a class="nav__link" href="index.html">Начало</a></li>
-            <li><a class="nav__link" href="predizvikatelstva.html">Предизвикателства</a></li>
-            <li><a class="nav__link" href="sektori.html">Сектори</a></li>
-            <li><a class="nav__link" href="metodi.html">Методи</a></li>
-            <li><a class="nav__link" href="kontakti.html" aria-current="page">Контакти</a></li>
+          <li class="nav__item">
+            <button class="nav__link nav__trigger" type="button" aria-expanded="false" aria-controls="mega-challenges">Предизвикателства<svg class="nav__chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m2.5 4.5 3.5 3.5 3.5-3.5"/></svg></button>
+            <div class="mega" id="mega-challenges" hidden>
+              <div class="container mega__inner">
+                <div class="mega__intro">
+                  <p class="t-h3">Предизвикателства</p>
+                  <p class="t-body">Започнете от проблема, който виждате всеки ден. Всяка ситуация води до една или две рамки.</p>
+                  <a class="link-arrow" href="predizvikatelstva.html">Всички предизвикателства <span class="arrow" aria-hidden="true">→</span></a>
+                </div>
+                <ul class="mega__links">
+                  <li><a href="predizvikatelstva.html#rastezh">Продажбите не растат<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="predizvikatelstva.html#marzh">Оборотът расте, печалбата не<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="predizvikatelstva.html#posoka">Не е ясно накъде да вървим<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="predizvikatelstva.html#ceni">Конкурент сваля цените<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="predizvikatelstva.html#kontrol">Фирмата расте, контролът се губи<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="predizvikatelstva.html#nov-pazar">Обмисляме нов продукт или пазар<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li class="mega__all"><a href="predizvikatelstva.html">Преглед на всички<span class="arrow" aria-hidden="true">→</span></a></li>
+                </ul>
+                <a class="mega__feature" href="predizvikatelstva.html#marzh">
+                  <div class="art"><svg viewBox="0 0 320 200" aria-hidden="true"><rect class="d-line" x="40" y="28" width="244" height="36"/><rect class="d-fill" x="40" y="28" width="244" height="36"/><path class="d-line" d="M40 92h36l12 34-12 34H40l12-34z"/><path class="d-line" d="M88 92h36l12 34-12 34H88l12-34z"/><path class="d-line" d="M136 92h36l12 34-12 34h-36l12-34z"/><path class="d-line" d="M184 92h36l12 34-12 34h-36l12-34z"/><path class="d-gold-line" d="M232 92h36l12 34-12 34h-36l12-34z"/></svg></div>
+                  <p class="t-label t-label--accent">Предизвикателство</p>
+                  <p class="t-h4">Оборотът расте, печалбата не</p>
+                </a>
+              </div>
+            </div>
+          </li>
+          <li class="nav__item">
+            <button class="nav__link nav__trigger" type="button" aria-expanded="false" aria-controls="mega-sectors">Сектори<svg class="nav__chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m2.5 4.5 3.5 3.5 3.5-3.5"/></svg></button>
+            <div class="mega" id="mega-sectors" hidden>
+              <div class="container mega__inner">
+                <div class="mega__intro">
+                  <p class="t-h3">Сектори</p>
+                  <p class="t-body">Една и съща рамка изглежда различно в ресторант и в транспортна фирма.</p>
+                  <a class="link-arrow" href="sektori.html">Всички сектори <span class="arrow" aria-hidden="true">→</span></a>
+                </div>
+                <ul class="mega__links">
+                  <li><a href="sektori.html#targoviya">Търговия<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="sektori.html#proizvodstvo">Производство<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="sektori.html#uslugi">Услуги<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="sektori.html#horeka">ХоРеКа<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="sektori.html#stroitelstvo">Строителство<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="sektori.html#logistika">Логистика<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li class="mega__all"><a href="sektori.html">Преглед на всички<span class="arrow" aria-hidden="true">→</span></a></li>
+                </ul>
+                <a class="mega__feature" href="sektori.html#horeka">
+                  <div class="art art--gold art--icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10.5h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/></svg></div>
+                  <p class="t-label t-label--accent">Сектор</p>
+                  <p class="t-h4">ХоРеКа: сезонност и разходи в кухнята</p>
+                </a>
+              </div>
+            </div>
+          </li>
+          <li class="nav__item">
+            <button class="nav__link nav__trigger" type="button" aria-expanded="false" aria-controls="mega-methods">Методи<svg class="nav__chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m2.5 4.5 3.5 3.5 3.5-3.5"/></svg></button>
+            <div class="mega" id="mega-methods" hidden>
+              <div class="container mega__inner">
+                <div class="mega__intro">
+                  <p class="t-h3">Методи</p>
+                  <p class="t-body">Шест рамки на водещите консултантски компании, описани стъпка по стъпка.</p>
+                  <a class="link-arrow" href="metodi.html">Всички методи <span class="arrow" aria-hidden="true">→</span></a>
+                </div>
+                <ul class="mega__links">
+                  <li><a href="metod-swot.html">SWOT анализ<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="metod-porter.html">Петте сили на Портър<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="metod-ansoff.html">Матрица на Ансоф<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="metod-veriga.html">Верига на стойността<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="metod-kanava.html">Канава на бизнес модела<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li><a href="metod-pokazateli.html">Балансирана система от показатели<span class="arrow" aria-hidden="true">→</span></a></li>
+                  <li class="mega__all"><a href="metodi.html">Преглед на всички<span class="arrow" aria-hidden="true">→</span></a></li>
+                </ul>
+                <a class="mega__feature" href="metod-swot.html">
+                  <div class="art art--teal"><svg viewBox="0 0 320 200" aria-hidden="true"><rect class="d-fill" x="70" y="10" width="88" height="88"/><rect class="d-line" x="70" y="10" width="88" height="88"/><rect class="d-line" x="162" y="10" width="88" height="88"/><rect class="d-gold-line" x="70" y="102" width="88" height="88"/><rect class="d-line" x="162" y="102" width="88" height="88"/><text class="d-text" x="114" y="62" text-anchor="middle">S</text><text class="d-text" x="206" y="62" text-anchor="middle">W</text><text class="d-text" x="114" y="154" text-anchor="middle">O</text><text class="d-text" x="206" y="154" text-anchor="middle">T</text></svg></div>
+                  <p class="t-label t-label--accent">Метод</p>
+                  <p class="t-h4">SWOT анализ за 90 минути</p>
+                </a>
+              </div>
+            </div>
+          </li>
+          <li class="nav__item"><a class="nav__link" href="podhod.html">Подход</a></li>
+          <li class="nav__item"><a class="nav__link" href="kontakti.html" aria-current="page">Контакти</a></li>
         </ul>
-        <a class="btn btn--primary nav__cta" href="kontakti.html">Опишете казуса</a>
-        <button class="icon-btn theme-toggle" type="button" aria-label="Смени светла/тъмна тема">
-          <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
-          <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-        </button>
-        <button class="icon-btn nav-toggle" type="button" aria-controls="nav-list" aria-expanded="false" aria-label="Меню">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
-        </button>
+        <div class="nav__actions">
+          <a class="btn btn--primary nav__cta" href="kontakti.html">Опишете казуса</a>
+          <button class="icon-btn theme-toggle" type="button" aria-label="Смени светла/тъмна тема">
+            <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+            <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          </button>
+          <button class="icon-btn nav-toggle" type="button" aria-controls="nav-list" aria-expanded="false" aria-label="Меню">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+          </button>
+        </div>
       </nav>
     </div>
   </header>
 
   <main id="main">
 
-    <section class="page-head">
-      <div class="container page-head__inner">
-        <p class="eyebrow t-label">Контакти</p>
-        <h1 class="t-h1">Разкажете ни за вашия бизнес</h1>
-        <p class="t-lead">Няколко изречения са достатъчни. Ще ви отговорим с конкретна рамка и първа стъпка.</p>
+
+    <section class="page-hero on-inverse">
+      <div class="container page-hero__grid">
+        <div class="page-hero__copy">
+          <nav aria-label="Път"><ol class="crumbs"><li><a href="index.html">Начало</a></li><li aria-current="page">Контакти</li></ol></nav>
+          <p class="t-label t-label--gold">Контакти</p>
+          <h1 class="t-h1">Разкажете ни за вашия бизнес</h1>
+          <p class="t-lead">Няколко изречения са достатъчни. Ще ви отговорим с конкретна рамка и първа стъпка.</p>
+          
+        </div>
+        
       </div>
     </section>
 
     <section class="section">
       <div class="container contact">
-        <div class="stack stack--lg">
-          <div class="stack">
+        <div class="stack stack--xl">
+          <div class="stack stack--md">
             <h2 class="t-h3">Какво следва</h2>
-            <ol class="steps" role="list" style="grid-template-columns:1fr;gap:var(--space-5)">
-              <li class="step"><span class="step__num">1</span><p class="t-small">Изпращате кратко описание на ситуацията.</p></li>
-              <li class="step"><span class="step__num">2</span><p class="t-small">До два работни дни получавате препоръка за рамка и първа стъпка.</p></li>
-              <li class="step"><span class="step__num">3</span><p class="t-small">Ако е нужно, уговаряме 30-минутен разговор.</p></li>
+            <ol class="process" style="grid-template-columns:1fr">
+              <li><p class="t-body">Изпращате кратко описание на ситуацията.</p></li>
+              <li><p class="t-body">До два работни дни получавате препоръка за рамка и първа стъпка.</p></li>
+              <li><p class="t-body">Ако е нужно, уговаряме 30-минутен разговор.</p></li>
             </ol>
           </div>
           <div class="stack stack--sm">
-            <p class="t-label" style="color:var(--color-text-muted)">Имейл</p>
+            <p class="t-label t-label--muted">Имейл</p>
             <div class="copy-row">
               <strong id="email">info@mspkompas.bg</strong>
               <button class="btn btn--secondary" type="button" data-copy="#email">Копирай</button>
@@ -86,87 +177,92 @@
           </div>
         </div>
 
-        <div class="card" style="padding:clamp(24px,4vw,40px)">
-          <form class="form" id="contact-form" novalidate>
-            <div class="form__row">
-              <div class="field">
-                <label for="f-name">Име</label>
-                <input class="input" id="f-name" name="name" autocomplete="name" required>
-              </div>
-              <div class="field">
-                <label for="f-company">Фирма</label>
-                <input class="input" id="f-company" name="company" autocomplete="organization">
-              </div>
-            </div>
-            <div class="form__row">
-              <div class="field">
-                <label for="f-email">Имейл</label>
-                <input class="input" id="f-email" name="email" type="email" autocomplete="email" required>
-              </div>
-              <div class="field">
-                <label for="f-sector">Сектор</label>
-                <select class="select" id="f-sector" name="sector">
-                  <option value="">Изберете</option>
-                  <option>Търговия</option><option>Производство</option><option>Услуги</option><option>ХоРеКа</option><option>Строителство</option><option>Логистика</option>
-                  <option>Друг</option>
-                </select>
-              </div>
-            </div>
+        <form class="form" id="contact-form" novalidate>
+          <div class="form__row">
+            <div class="field"><label for="f-name">Име</label><input class="input" id="f-name" name="name" autocomplete="name" required></div>
+            <div class="field"><label for="f-company">Фирма</label><input class="input" id="f-company" name="company" autocomplete="organization"></div>
+          </div>
+          <div class="form__row">
+            <div class="field"><label for="f-email">Имейл</label><input class="input" id="f-email" name="email" type="email" autocomplete="email" required></div>
             <div class="field">
-              <label for="f-message">Какво искате да промените?</label>
-              <span class="hint" id="f-message-hint">Например: „Оборотът расте, но печалбата пада от две години.“</span>
-              <textarea class="textarea" id="f-message" name="message" aria-describedby="f-message-hint" required></textarea>
+              <label for="f-sector">Сектор</label>
+              <select class="select input" id="f-sector" name="sector">
+                <option value="">Изберете</option>
+                <option>Търговия</option><option>Производство</option><option>Услуги</option><option>ХоРеКа</option><option>Строителство</option><option>Логистика</option>
+                <option>Друг</option>
+              </select>
             </div>
-            <div class="cluster" style="justify-content:space-between">
-              <p class="t-small">Всички полета без „Фирма“ и „Сектор“ са задължителни.</p>
-              <button class="btn btn--primary btn--lg" type="submit">Изпрати <span class="arrow" aria-hidden="true">→</span></button>
-            </div>
-            <div class="notice" id="form-notice" role="status" hidden></div>
-          </form>
-        </div>
+          </div>
+          <div class="field">
+            <label for="f-message">Какво искате да промените?</label>
+            <span class="hint" id="f-message-hint">Например: „Оборотът расте, но печалбата пада от две години.“</span>
+            <textarea class="textarea" id="f-message" name="message" aria-describedby="f-message-hint" required></textarea>
+          </div>
+          <div class="form__foot">
+            <p class="t-small">Всички полета без „Фирма“ и „Сектор“ са задължителни.</p>
+            <button class="btn btn--primary btn--lg" type="submit">Изпрати <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+          <div class="notice" id="form-notice" role="status" hidden></div>
+        </form>
       </div>
     </section>
   </main>
 
-  <footer class="site-footer">
+  <footer class="site-footer on-inverse">
     <div class="container">
-      <div class="footer__grid">
-        <div class="stack">
+      <div class="footer__top">
+        <div class="stack stack--md">
           <div class="brand">
         <svg class="brand__mark" aria-hidden="true"><use href="#mark"/></svg>
-        <span class="brand__text">
-          <span class="brand__name">МСП Компас</span>
-          <span class="brand__sub t-label">MSP Compass</span>
-        </span>
+        <span class="brand__text"><span class="brand__name">МСП Компас</span><span class="brand__sub">MSP Compass</span></span>
       </div>
-          <p class="footer__tagline">Посока. Яснота. Решения. Растеж.</p>
-          <p class="t-small" style="max-width:36ch">Стратегическите рамки на водещите консултантски компании, приложени към българските малки и средни предприятия.</p>
+          <p class="footer__statement">Посока. Яснота. Решения. Растеж.</p>
         </div>
         <div class="stack stack--sm">
-          <p class="t-label" style="color:var(--color-text-muted)">Навигация</p>
+          <p class="t-label t-label--gold">Предизвикателства</p>
+          <ul class="footer__list">
+            <li><a href="predizvikatelstva.html#rastezh">Продажбите не растат</a></li>
+            <li><a href="predizvikatelstva.html#marzh">Оборотът расте, печалбата не</a></li>
+            <li><a href="predizvikatelstva.html#posoka">Не е ясно накъде да вървим</a></li>
+            <li><a href="predizvikatelstva.html#ceni">Конкурент сваля цените</a></li>
+            <li><a href="predizvikatelstva.html#kontrol">Фирмата расте, контролът се губи</a></li>
+            <li><a href="predizvikatelstva.html#nov-pazar">Обмисляме нов продукт или пазар</a></li>
+          </ul>
+        </div>
+        <div class="stack stack--sm">
+          <p class="t-label t-label--gold">Сектори</p>
+          <ul class="footer__list">
+            <li><a href="sektori.html#targoviya">Търговия</a></li>
+            <li><a href="sektori.html#proizvodstvo">Производство</a></li>
+            <li><a href="sektori.html#uslugi">Услуги</a></li>
+            <li><a href="sektori.html#horeka">ХоРеКа</a></li>
+            <li><a href="sektori.html#stroitelstvo">Строителство</a></li>
+            <li><a href="sektori.html#logistika">Логистика</a></li>
+          </ul>
+        </div>
+        <div class="stack stack--sm">
+          <p class="t-label t-label--gold">Методи</p>
+          <ul class="footer__list">
+            <li><a href="metod-swot.html">SWOT анализ</a></li>
+            <li><a href="metod-porter.html">Петте сили на Портър</a></li>
+            <li><a href="metod-ansoff.html">Матрица на Ансоф</a></li>
+            <li><a href="metod-veriga.html">Верига на стойността</a></li>
+            <li><a href="metod-kanava.html">Канава на бизнес модела</a></li>
+            <li><a href="metod-pokazateli.html">Балансирана система от показатели</a></li>
+          </ul>
+        </div>
+        <div class="stack stack--sm">
+          <p class="t-label t-label--gold">МСП Компас</p>
           <ul class="footer__list">
             <li><a href="index.html">Начало</a></li>
-            <li><a href="predizvikatelstva.html">Предизвикателства</a></li>
-            <li><a href="sektori.html">Сектори</a></li>
-            <li><a href="metodi.html">Методи</a></li>
+            <li><a href="podhod.html">Нашият подход</a></li>
             <li><a href="kontakti.html">Контакти</a></li>
           </ul>
         </div>
-        <div class="stack stack--sm">
-          <p class="t-label" style="color:var(--color-text-muted)">Методи</p>
-          <ul class="footer__list">
-            <li><a href="metodi.html#swot">SWOT анализ</a></li>
-            <li><a href="metodi.html#porter">Петте сили на Портър</a></li>
-            <li><a href="metodi.html#ansoff">Матрица на Ансоф</a></li>
-            <li><a href="metodi.html#value-chain">Верига на стойността</a></li>
-            <li><a href="metodi.html#bmc">Канава на бизнес модела</a></li>
-            <li><a href="metodi.html#bsc">Балансирана система от показатели</a></li>
-          </ul>
-        </div>
       </div>
-      <div class="footer__base t-small">
-        <span>© <span data-year>2026</span> МСП Компас</span>
-        <span class="t-label">N 000° · Посока</span>
+      <div class="footer__base">
+        <span>© <span data-year>2026</span> МСП Компас. Всички права запазени.</span>
+        <span>Стратегическите рамки на водещите консултантски компании, за българските МСП.</span>
       </div>
     </div>
   </footer>
