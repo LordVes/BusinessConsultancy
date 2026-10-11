@@ -1,5 +1,13 @@
 // Shared header, footer and graphic components used by build-pages.mjs.
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { METHODS, CHALLENGES, SECTORS, method, area } from "./content.mjs";
+
+// CSS and JS are inlined into every page so each HTML file works on its own
+// (opened from a zip, emailed, previewed), with no dependency on the assets/ folder.
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const asset = (path) => readFileSync(resolve(ROOT, path), "utf8").trim();
 
 export const arrow = `<span class="arrow" aria-hidden="true">→</span>`;
 
@@ -146,12 +154,15 @@ export function page({ file, title, description, main }) {
   <title>${title}</title>
   <meta name="description" content="${description}">
   <meta name="theme-color" content="#0D2240">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(asset("assets/img/favicon.svg"))}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="assets/css/tokens.css">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <style>
+${asset("assets/css/tokens.css")}
+
+${asset("assets/css/styles.css")}
+  </style>
   <script>try{var t=localStorage.getItem("msp-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 </head>
 <body>
@@ -213,7 +224,9 @@ ${main}
     </div>
   </footer>
 
-  <script src="assets/js/main.js" defer></script>
+  <script>
+${asset("assets/js/main.js")}
+  </script>
 </body>
 </html>
 `;
