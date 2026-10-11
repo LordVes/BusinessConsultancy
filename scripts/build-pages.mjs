@@ -51,7 +51,6 @@ write("index.html", "МСП Компас", "Стратегическите ра�
     <section class="hero on-inverse" aria-labelledby="hero-title">
       <div class="container hero__grid">
         <div class="hero__copy">
-          <span class="hero__rule" aria-hidden="true"></span>
           <h1 class="t-display" id="hero-title">Консултантското знание на най-добрите, отворено за българския бизнес.</h1>
           <p class="t-lead">Рамките, с които водещите консултантски компании работят за световни корпорации, обяснени на ясен език и приложени към реалностите на българските малки и средни предприятия.</p>
           <div class="hero__actions">

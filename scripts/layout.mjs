@@ -157,7 +157,7 @@ export function page({ file, title, description, main }) {
   <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(asset("assets/img/favicon.svg"))}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,700;1,400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
   <style>
 ${asset("assets/css/tokens.css")}
 
