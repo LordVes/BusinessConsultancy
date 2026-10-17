@@ -24,6 +24,7 @@ I am a management consultant who wants to improve his AI proficiency and impleme
 ## Project Structure
 
 - `workflows/` - Workflow instruction files (plain English, German and/or Bulgarian recipes the agent follows)
+  - `workflows/research-report.md` - Finance, investment and economics research report: clarify first, then research and write
 - `output/` - Finished deliverables (reports, drafts, analysis, memos)
 - `resources/` - Reference docs and templates
 - `agents/` - Code for any agents built here, one subfolder per agent (create when the first agent is built)
