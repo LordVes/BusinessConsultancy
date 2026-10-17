@@ -23,7 +23,7 @@
 - Proxy rule: where MSE-specific data does not exist, I use SME-wide or corporate-wide data and say so.
 
 **Limitations (important)**
-- **Primary documents not opened.** Network restrictions in this working environment blocked direct access to bnb.bg, the Association of Banks in Bulgaria (abanksb.bg) and economic.bg. Figures below come from web search summaries of those and other sources, not from the original tables. Every number attributed to the BNB or ABB should be checked against the original before external use.
+- **Primary documents only partly opened.** The Association of Banks in Bulgaria (ABB) 2025 banking-system page [13] was read directly (system size, capital, NPLs, new-loan rates, bank groups). The BNB publication PDFs live on www.bnb.bg, which network restrictions in this working environment still blocked, and economic.bg was also blocked. BNB and other figures below therefore come from web search summaries, not the original tables, and should be checked before external use. ABB-sourced figures are marked [13].
 - **No MSE- or exporter-specific series.** Bulgarian statistics reviewed group enterprises by size band or sector in aggregate. No source gave the financing mix, maturity or bank shares for export-oriented medium-sized firms specifically.
 - **Maturity data not retrieved.** The BNB publishes corporate loan volumes by original maturity (up to 1 year, 1-5 years, over 5 years) but I could not read the 2025 figures.
 - **Mixed dates.** Several items (leasing, some programmes) are older or undated, and some 2026 items come from secondary sources.
@@ -41,7 +41,9 @@
 ### 2. Maturity of financing
 
 - Direct maturity split for MSEs: **not obtained (gap).**
+- Average interest rate on newly granted loans to non-financial corporations, December 2025: 4.09% in BGN (4.47% a year earlier) and 4.60% in EUR (5.01%) [13]. These are all-maturity averages; they are not MSE- or exporter-specific.
 - Pricing signal for long loans: new loans to enterprises over 5 years in lev carried about 3.7% in December 2025 (CEIC series, secondary) [2].
+- Deposit side: average rate on new corporate term deposits fell to 1.45% (BGN) and 1.43% (EUR) [13], so the spread between corporate lending and deposit rates remains wide.
 - Euro adoption: lev loans became euro loans on 1 January 2026 at the fixed rate, with unchanged rates and instalments; loans tied to the BNB base rate moved to EURIBOR-based pricing (3-month for non-revolving, 1-month for revolving, per UniCredit Bulbank) [9]. Floating-rate exposure is therefore now to EURIBOR.
 - Non-bank lenders show a long-dated book (47.4% over five years) but this is not the bank-loan population relevant to MSEs [2].
 
@@ -55,7 +57,9 @@
 
 ### 4. Banks most heavily involved
 
-- Concentration at end-2025 (share of system assets): UBB 19.60%, DSK Bank 18.93%, UniCredit Bulbank 18.07%, Eurobank Bulgaria 11.88%, Fibank 7.82%; top five 76.3% [4].
+- System context at end-2025: 23 banks (six are branches of foreign banks); total assets BGN 227.04bn (EUR 116.08bn), +18.5% year on year; loans were 62.3% of assets [13].
+- Concentration at end-2025 (share of system assets): the five largest banks hold 76.3% (76.8% in 2024); the second group holds 21.3% and foreign branches 2.4% [13]. Individual shares: UBB 19.60%, DSK Bank 18.93%, UniCredit Bulbank 18.07%, Eurobank Bulgaria 11.88%, Fibank 7.82% [4] (secondary; not confirmed in the ABB page).
+- Soundness: CET1 24.89%, total capital ratio 26.56%, liquidity coverage ratio 280.6%; system NPL ratio 1.55% (1.79% in 2024), coverage 86.0%; ROE 14.5%, ROA 1.8% [13]. Banks are well capitalized and liquid, so supply of credit is not capital-constrained.
 - Lending growth: system-wide, mortgages grew +28.9% year on year and corporate loans +3.9% (+BGN 2.0bn) in the Q4 2025 review [4]. Note this conflicts in basis with BNB statements of 9.3% credit growth to non-financial corporations at end-May 2025 and 15.5% for corporations and households combined at end-2025 [1][2]; definitions differ and were not reconciled.
 - UBB emerged as the largest lender after the merger with KBC Bank Bulgaria and expanded corporate and household lending faster than the market [4].
 - Development and guarantee support runs through commercial banks: ProCredit Bank Bulgaria (EIB guarantee, about EUR 150M) [3], Allianz Bank Bulgaria (reported EUR 190M guarantee, March 2026, unverified) [3], UniCredit Bulbank (InvestEU, EUR 100M with BDB) and DSK Bank (InvestEU guarantee, over EUR 300M) [1].
@@ -76,9 +80,12 @@
 | Credit growth, corporations and households | 15.5% y/y | end-2025 | [2] (BNB, secondary read) |
 | Corporate loans, system-wide | +3.9% y/y, +BGN 2.0bn | Q4 2025 | [4] |
 | Gross NPL ratio, non-financial corporations | 4.53% | Q2 2025 | [1] |
-| Avg new-business rate, loans to non-financial corporations | 4.12% (2024: 4.28%) | 2025 | [1] (bank report; scope unclear) |
+| Avg rate on new loans to non-financial corporations | BGN 4.09% (2024: 4.47%); EUR 4.60% (2024: 5.01%) | Dec 2025 | [13] (ABB, from BNB) |
+| System NPL ratio (all loans) | 1.55% (2024: 1.79%) | Dec 2025 | [13] |
+| Banking system total assets | BGN 227.04bn (EUR 116.08bn), +18.5% | Dec 2025 | [13] |
+| CET1 / total capital / LCR | 24.89% / 26.56% / 280.6% | Dec 2025 | [13] |
 | New enterprise loans over 5 years, BGN | about 3.7% | Dec 2025 | [2] |
-| Top-5 bank asset share | 76.3% | end-2025 | [4] |
+| Top-5 bank asset share | 76.3% | end-2025 | [13] |
 | BEAM issues listed | 19 stocks, 7 bonds | 2026 report | [5] |
 | BSE IPOs / bonds / warrants | 0 / 0 / 0 | 2025 | [5] |
 | Exports of goods and services, % of GDP | 50.7% (World Bank via secondary) vs 65% (Trading Economics) | 2025 | [11] (sources conflict) |
@@ -87,13 +94,13 @@
 ## Risks, uncertainties and open questions
 
 **Risks and challenges for export MSEs**
-- **Concentration and dependence on a few banks:** five banks hold 76.3% of assets; an MSE with a single main bank has limited bargaining power [4].
+- **Concentration and dependence on a few banks:** five banks hold 76.3% of assets; an MSE with a single main bank has limited bargaining power [13].
 - **Collateral and credit-history barriers:** secondary evidence says banks view export-minded firms as riskier, with higher rates and stricter collateral [12]. Guarantees reduce but do not remove this.
 - **Maturity mismatch (hypothesis):** guaranteed lending is weighted to working capital [3]; if the same pattern holds across MSEs, long-lived investments may be financed with short-term debt. Untested.
 - **Capital market access:** effectively closed for most MSEs in 2025; deal sizes are small [5].
 - **Rate and EURIBOR exposure** after euro adoption for floating-rate borrowers [9].
 - **Export demand and cost of disputes:** a cited survey puts the cost of resolving foreign trade disputes as the top obstacle (50%) [12], unverified.
-- **Credit quality:** NPL ratio for corporations 4.53% in Q2 2025 [1].
+- **Credit quality:** the system NPL ratio is low at 1.55% [13], but the corporate gross NPL ratio was 4.53% in Q2 2025 [1] (secondary); the two measure different loan pools and are not directly comparable.
 - **Underused EU funds** due to administrative capacity [12].
 
 **Open questions**
@@ -113,7 +120,7 @@
 
 ### Recommended next steps
 
-1. **Close the data gaps (highest priority):** open the primary BNB tables (loans by maturity and sector, interest rates, "Banks in Bulgaria"), NSI and Eurostat SME-by-size data, and the ECB SAFE Bulgaria country tables. To enable this from here, allow bnb.bg, abanksb.bg, economic.bg and similar domains in the environment's network settings, or send me the files.
+1. **Close the data gaps (highest priority):** open the primary BNB tables (loans by maturity and sector, interest rates, "Banks in Bulgaria"), NSI and Eurostat SME-by-size data, and the ECB SAFE Bulgaria country tables. ABB is now readable; the BNB documents need `www.bnb.bg` (not only `bnb.bg`) added to the environment's allowed domains, or the files sent to me.
 2. **Ground-truth with practitioners:** short interviews with 5-10 CFOs/owners of export MSEs and 2-3 relationship managers (including at UBB, DSK, UniCredit Bulbank and BDB) to test the maturity-mismatch and collateral hypotheses.
 3. **For management teams now (judgement):**
    - Review the maturity profile of debt against asset life and cash-flow timing.
@@ -136,6 +143,7 @@
 10. ECB SAFE survey (euro area) - https://www.ecb.europa.eu/stats/ecb_surveys/safe/html/ecb.safe202504~3839a2deca.en.html
 11. The Global Economy, exports % of GDP - https://www.theglobaleconomy.com/Bulgaria/exports/ ; Trading Economics - https://tradingeconomics.com/bulgaria/gdp-growth
 12. Xpert.Digital on Bulgarian SMEs abroad (secondary) - https://xpert.digital/en/this-is-what-bulgarian-smes-abroad-really-fail-to-do/ ; EIB Investment Survey 2025 Bulgaria - https://www.eib.org/files/publications/20250218-091225-econ-eibis-2025-bulgaria-en.pdf ; BTA, Economy Minister - https://bta.bg/en/news/757083-economy-minister-access-to-finance-for-smes-is-crucial-in-current-complicated-e
+13. Association of Banks in Bulgaria, "The banking system in Bulgaria in 2025 - main highlights" (data from BNB), read directly - https://abanksb.bg/en/banking-system/the-banking-system-in-bulgaria-in-2025-main-highlights/
 
 ---
 
