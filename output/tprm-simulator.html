@@ -1,0 +1,581 @@
+<title>TPRM Lifecycle Simulator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: slim header with simulated clock, tab navigation, content in one column up to 1080px.
+   Treatment: utilitarian risk-desk tool; petrol accent, cool blue-grey neutrals, mono for data. */
+:root {
+  --bg: #f2f5f6; --surface: #ffffff; --ink: #14232b; --muted: #55676f; --line: #d3dce0; --line-soft: #e6ecee;
+  --accent: #0f6b73; --accent-ink: #ffffff; --accent-soft: #dbeeee;
+  --ok: #1d7648; --ok-soft: #dff1e6; --warn: #8f5508; --warn-soft: #f8ead2; --bad: #ad2a22; --bad-soft: #f8dedb;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e181d; --surface: #152329; --ink: #e5eef0; --muted: #94a8af; --line: #2a3b42; --line-soft: #213138;
+    --accent: #55bcc4; --accent-ink: #072226; --accent-soft: #163a3f;
+    --ok: #62c694; --ok-soft: #173a2a; --warn: #e4a550; --warn-soft: #3d2f14; --bad: #ff8f86; --bad-soft: #43201d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e181d; --surface: #152329; --ink: #e5eef0; --muted: #94a8af; --line: #2a3b42; --line-soft: #213138;
+  --accent: #55bcc4; --accent-ink: #072226; --accent-soft: #163a3f;
+  --ok: #62c694; --ok-soft: #173a2a; --warn: #e4a550; --warn-soft: #3d2f14; --bad: #ff8f86; --bad-soft: #43201d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 14px/1.5 var(--sans); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 16px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { margin: 0; font-weight: 600; text-wrap: balance; }
+h1 { font-size: 20px; letter-spacing: -0.01em; }
+h2 { font-size: 18px; margin-bottom: 12px; }
+h3 { font-size: 14px; margin-bottom: 8px; }
+p { margin: 0 0 8px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.eyebrow { font: 500 11px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+button, select, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header.top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; padding-bottom: 14px; }
+.brand { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.clock { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.clock .date { font: 500 15px var(--mono); padding: 4px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+nav.tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+nav.tabs button, .subtabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 14px; color: var(--muted); white-space: nowrap; font-weight: 500; }
+nav.tabs button[aria-current="true"], .subtabs button[aria-current="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.subtabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--line); margin: 16px 0; }
+
+.btn { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 6px 12px; font-weight: 500; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.danger { color: var(--bad); }
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; min-width: 0; }
+.flash { background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn); border-radius: 4px; padding: 8px 12px; margin-bottom: 16px; }
+.flash.ok { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
+.kpi { background: var(--surface); padding: 12px 14px; }
+.kpi b { display: block; font: 500 26px/1.1 var(--mono); margin-top: 4px; }
+.kpi.alert b { color: var(--bad); }
+
+.bars { display: grid; gap: 6px; }
+.bar { display: grid; grid-template-columns: minmax(90px, 160px) 1fr 24px; gap: 8px; align-items: center; font-size: 12px; }
+.bar .track { height: 10px; background: var(--line-soft); border-radius: 2px; }
+.bar .fill { height: 100%; background: var(--accent); border-radius: 2px; }
+.bar span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 640px; }
+th { text-align: left; font: 500 11px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 8px 10px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: var(--accent-soft); }
+
+.pill { display: inline-block; font: 500 11px/1 var(--mono); padding: 3px 7px; border-radius: 3px; border: 1px solid var(--line); white-space: nowrap; }
+.pill.t1 { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.pill.t2 { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-soft); }
+.pill.t3 { background: transparent; color: var(--muted); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.pill.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.pill.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.pill.mute { color: var(--muted); }
+
+.steps { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin: 14px 0 0; padding: 0; list-style: none; }
+.steps li { border-top: 3px solid var(--line); padding-top: 4px; font-size: 11px; line-height: 1.25; color: var(--muted); min-width: 0; }
+.steps li.done { border-color: var(--ok); }
+.steps li.cur { border-color: var(--accent); color: var(--ink); font-weight: 600; }
+.steps li .n { font-family: var(--mono); display: block; }
+@media (max-width: 720px) { .steps { grid-template-columns: repeat(5, 1fr); row-gap: 10px; } }
+
+.stage { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); margin-bottom: 8px; }
+.stage > button { width: 100%; text-align: left; background: none; border: 0; padding: 10px 14px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.stage.cur { border-color: var(--accent); }
+.stage .body { padding: 0 14px 12px; }
+.task { display: flex; gap: 10px; align-items: flex-start; padding: 5px 0; }
+.task input { margin-top: 3px; accent-color: var(--accent); }
+.task.auto .mark { width: 13px; text-align: center; font-family: var(--mono); }
+
+.field { display: grid; gap: 4px; margin-bottom: 12px; min-width: 0; }
+.field label, .field .lab { font-weight: 500; }
+.field input[type=text], .field select, .field textarea { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; width: 100%; }
+.field textarea { min-height: 70px; font-family: var(--mono); font-size: 12px; }
+.slider { display: grid; grid-template-columns: 1fr 24px; gap: 8px; align-items: center; }
+.slider input { accent-color: var(--accent); width: 100%; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.checks label { display: flex; gap: 6px; align-items: center; font-weight: 400; }
+.checks input { accent-color: var(--accent); }
+.fgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 0 16px; }
+details.panel > summary { cursor: pointer; font-weight: 600; }
+details.panel[open] > summary { margin-bottom: 12px; }
+
+.req { padding: 10px 0; border-bottom: 1px solid var(--line-soft); display: grid; gap: 4px; }
+.req:last-child { border-bottom: 0; }
+.req .head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.issue { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; background: var(--surface); }
+.issue.open { border-left: 4px solid var(--bad); }
+pre.out { margin: 0; white-space: pre-wrap; word-break: break-word; font: 12px/1.5 var(--mono); }
+footer { margin-top: 32px; color: var(--muted); font-size: 12px; max-width: 70ch; }
+@media (prefers-reduced-motion: no-preference) { .fill { transition: width .3s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Third-party risk · insurance</span>
+      <h1>TPRM Lifecycle Simulator</h1>
+    </div>
+    <div class="clock" id="clock"></div>
+  </header>
+  <nav class="tabs" id="nav" aria-label="Pages"></nav>
+  <div id="app"></div>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const CFG = {"meta": {"title": "TPRM Lifecycle Simulator", "disclaimer": "Simplified teaching model with fictional data. Regulatory references are paraphrased from general knowledge and are NOT legal advice; verify against the current texts before relying on them.\n"}, "scoring": {"factors": {"data_sensitivity": {"label": "Data sensitivity", "help": "1 = public/none, 2 = internal, 3 = personal data, 4 = health/claims/special-category or large volumes", "weight": 0.3}, "criticality": {"label": "Operational criticality", "help": "1 = nice to have, 2 = important, 3 = key process, 4 = business stops without it", "weight": 0.3}, "system_access": {"label": "System / network access", "help": "1 = none, 2 = limited, 3 = privileged to some systems, 4 = deep integration / core systems", "weight": 0.15}, "substitutability": {"label": "Difficulty to replace", "help": "1 = many alternatives, 2 = some, 3 = few, 4 = sole source / long migration", "weight": 0.15}, "regulatory_impact": {"label": "Regulatory impact", "help": "1 = none, 2 = minor, 3 = supervisory interest, 4 = regulated activity delegated", "weight": 0.1}}, "tier_thresholds": {"tier1": 3.0, "tier2": 2.25}, "overrides": [{"id": "critical_service", "when": {"criticality_gte": 4}, "min_tier": 1, "reason": "Operational criticality is 4 (business stops without the service)."}, {"id": "critical_function", "when": {"critical_function": true}, "min_tier": 1, "reason": "Supports a critical or important function."}, {"id": "sensitive_data_with_access", "when": {"data_sensitivity_gte": 4, "system_access_gte": 3}, "min_tier": 1, "reason": "Highly sensitive data combined with privileged system access."}, {"id": "ict_service_floor", "when": {"ict_service": true}, "min_tier": 2, "reason": "ICT service provider (DORA scope) is at least Tier 2."}], "residual": {"dd_mitigation_max": 0.4, "residual_per_severity_point": 0.15, "ratings": [{"name": "Low", "below": 2.0}, {"name": "Medium", "below": 2.75}, {"name": "High", "below": 3.4}, {"name": "Critical", "below": 99}]}}, "monitoring": {"reassessment_months": {"1": 12, "2": 24, "3": 36}, "health": [{"name": "Healthy", "max_points": 0}, {"name": "Watch", "max_points": 1}, {"name": "At risk", "max_points": 3}, {"name": "Critical", "max_points": 999}]}, "events": {"breach": {"label": "Security breach / cyber incident at vendor", "severity": 3, "reassessment": true, "notify": [{"framework": "DORA", "deadline_hours": 24, "text": "Initial notification of a major ICT-related incident to the competent authority (classify first; verify current RTS timelines)"}, {"framework": "NYDFS", "deadline_hours": 72, "text": "Notify NYDFS of a cybersecurity event, including at a third-party service provider (23 NYCRR 500.17)"}, {"framework": "PRA", "deadline_hours": 0, "text": "Notify the supervisor promptly where the incident is material (PRA expectations)"}]}, "service_outage": {"label": "Missed SLA / service outage", "severity": 1, "reassessment": false, "notify": [{"framework": "DORA", "deadline_hours": 24, "text": "Assess whether the outage is a major ICT-related incident requiring reporting"}]}, "rating_drop": {"label": "External cyber rating drop", "severity": 1, "reassessment": false, "notify": []}, "financial_distress": {"label": "Financial distress / going-concern doubt", "severity": 2, "reassessment": true, "notify": []}, "regulatory_finding": {"label": "Regulatory or enforcement action against vendor", "severity": 2, "reassessment": true, "notify": [{"framework": "PRA", "deadline_hours": 0, "text": "Consider whether the supervisor must be informed (material third-party arrangement)"}]}, "subcontractor_change": {"label": "Material subcontractor / fourth-party change", "severity": 1, "reassessment": true, "notify": [{"framework": "DORA", "deadline_hours": 0, "text": "Check contract notice rights for subcontracting of critical or important functions (Art. 30)"}]}, "ownership_change": {"label": "Change of ownership or control", "severity": 1, "reassessment": true, "notify": []}}, "frameworks": {"DORA": "EU Digital Operational Resilience Act (Reg. 2022/2554)", "SII": "EU Solvency II (Dir. 2009/138/EC, Del. Reg. 2015/35)", "EIOPA": "EIOPA Guidelines on outsourcing to cloud service providers", "PRA": "UK PRA SS2/21 Outsourcing and third party risk management", "NYDFS": "NY DFS 23 NYCRR Part 500 (cybersecurity)", "NAIC": "NAIC Insurance Data Security Model Law (#668)", "GDPR": "EU General Data Protection Regulation"}, "requirements": [{"id": "dora_28_3", "framework": "DORA", "ref": "Art. 28(3)", "text": "Maintain and update a Register of Information on all contractual arrangements with ICT third-party providers.", "tiers": [1, 2, 3], "requires": ["ict_service"]}, {"id": "dora_28_4a", "framework": "DORA", "ref": "Art. 28(4)(a)", "text": "Before contracting, assess whether the ICT service supports a critical or important function.", "tiers": [1, 2, 3], "requires": ["ict_service"]}, {"id": "dora_28_4c", "framework": "DORA", "ref": "Art. 28(4)(c)", "text": "Identify and assess all relevant risks of the contractual arrangement before contracting.", "tiers": [1, 2, 3], "requires": ["ict_service"]}, {"id": "dora_28_4d", "framework": "DORA", "ref": "Art. 28(4)(d)", "text": "Undertake due diligence on the prospective ICT third-party service provider.", "tiers": [1, 2, 3], "requires": ["ict_service"]}, {"id": "dora_28_4e", "framework": "DORA", "ref": "Art. 28(4)(e)", "text": "Identify and assess conflicts of interest arising from the arrangement.", "tiers": [1, 2, 3], "requires": ["ict_service"]}, {"id": "dora_28_7", "framework": "DORA", "ref": "Art. 28(7)", "text": "Contractual arrangements must allow termination in defined circumstances (e.g. serious breach, impediments to supervision).", "tiers": [1, 2, 3], "requires": ["ict_service"]}, {"id": "dora_28_8", "framework": "DORA", "ref": "Art. 28(8)", "text": "Exit strategies and transition plans for ICT services supporting critical or important functions.", "tiers": [1, 2, 3], "requires": ["ict_service", "critical_function"]}, {"id": "dora_29", "framework": "DORA", "ref": "Art. 29", "text": "Assess ICT concentration risk (same provider, closely connected providers, hard-to-substitute services) before contracting for critical or important functions.", "tiers": [1, 2, 3], "requires": ["ict_service", "critical_function"]}, {"id": "dora_30_2", "framework": "DORA", "ref": "Art. 30(2)", "text": "Key contractual provisions for all ICT services (service description, locations, data protection, availability, assistance, cooperation with authorities, termination, subcontracting conditions).", "tiers": [1, 2, 3], "requires": ["ict_service"]}, {"id": "dora_30_3", "framework": "DORA", "ref": "Art. 30(3)", "text": "Additional provisions for critical or important functions (full SLAs, notice and reporting duties, contingency plan testing, TLPT participation, exit and transition).", "tiers": [1, 2, 3], "requires": ["ict_service", "critical_function"]}, {"id": "dora_19", "framework": "DORA", "ref": "Art. 19", "text": "Report major ICT-related incidents (including those originating at a third party) to the competent authority within the required timelines.", "tiers": [1, 2, 3], "requires": ["ict_service"]}, {"id": "sii_49", "framework": "SII", "ref": "Art. 49", "text": "Outsourcing of critical or important functions must not impair governance, raise operational risk unduly, impair supervision or continuity; the insurer stays fully responsible.", "tiers": [1, 2], "requires": []}, {"id": "sii_49_notify", "framework": "SII", "ref": "Art. 49(3)", "text": "Notify the supervisor in good time before outsourcing critical or important functions.", "tiers": [1, 2], "requires": ["critical_function"]}, {"id": "sii_274", "framework": "SII", "ref": "Del. Reg. Art. 274", "text": "Written outsourcing agreement and due diligence, including supervisor access and audit rights, for critical or important functions.", "tiers": [1, 2], "requires": ["critical_function"]}, {"id": "eiopa_cloud_dd", "framework": "EIOPA", "ref": "Cloud Guidelines (due diligence)", "text": "Risk assessment and due diligence before outsourcing critical or important functions to a cloud provider.", "tiers": [1, 2], "requires": ["ict_service"]}, {"id": "eiopa_cloud_exit", "framework": "EIOPA", "ref": "Cloud Guidelines (exit)", "text": "Documented exit strategy and data portability for cloud outsourcing of critical or important functions.", "tiers": [1, 2], "requires": ["ict_service"]}, {"id": "pra_materiality", "framework": "PRA", "ref": "SS2/21 (materiality)", "text": "Assess materiality of each outsourcing and third-party arrangement.", "tiers": [1, 2], "requires": []}, {"id": "pra_dd", "framework": "PRA", "ref": "SS2/21 (due diligence)", "text": "Due diligence proportionate to the materiality of the arrangement.", "tiers": [1, 2, 3], "requires": []}, {"id": "pra_register", "framework": "PRA", "ref": "SS2/21 (register)", "text": "Maintain a register of all outsourcing and third-party arrangements.", "tiers": [1, 2, 3], "requires": []}, {"id": "pra_exit", "framework": "PRA", "ref": "SS2/21 (exit plans)", "text": "Stressed and non-stressed exit plans for material outsourcing.", "tiers": [1], "requires": []}, {"id": "pra_notify", "framework": "PRA", "ref": "SS2/21 (notification)", "text": "Notify the PRA before entering or significantly changing a material outsourcing.", "tiers": [1, 2], "requires": ["critical_function"]}, {"id": "nydfs_500_11_dd", "framework": "NYDFS", "ref": "500.11(a)", "text": "Third-party service provider policy covering risk assessment, due diligence and periodic assessment.", "tiers": [1, 2, 3], "requires": []}, {"id": "nydfs_500_11_contract", "framework": "NYDFS", "ref": "500.11(b)", "text": "Contractual guidelines on access controls (incl. MFA), encryption, event notice and representations.", "tiers": [1, 2, 3], "requires": []}, {"id": "nydfs_500_11_periodic", "framework": "NYDFS", "ref": "500.11(a)", "text": "Periodic assessment of third-party service providers based on risk.", "tiers": [1, 2, 3], "requires": []}, {"id": "nydfs_500_17", "framework": "NYDFS", "ref": "500.17(a)", "text": "Notify NYDFS within 72 hours of a cybersecurity event, including at a third-party service provider.", "tiers": [1, 2, 3], "requires": []}, {"id": "naic_4f_dd", "framework": "NAIC", "ref": "Sec. 4(F)(1)", "text": "Exercise due diligence in selecting third-party service providers.", "tiers": [1, 2, 3], "requires": []}, {"id": "naic_4f_contract", "framework": "NAIC", "ref": "Sec. 4(F)(2)", "text": "Require providers by contract to implement appropriate security measures for information systems and nonpublic information.", "tiers": [1, 2, 3], "requires": []}, {"id": "gdpr_28_dd", "framework": "GDPR", "ref": "Art. 28(1)", "text": "Use only processors providing sufficient guarantees of appropriate technical and organisational measures.", "tiers": [1, 2, 3], "requires": []}, {"id": "gdpr_28_contract", "framework": "GDPR", "ref": "Art. 28(3)", "text": "Processing must be governed by a contract containing the mandatory processor terms.", "tiers": [1, 2, 3], "requires": []}], "stages": [{"id": 1, "name": "Intake & registration", "line": "1st line - business sponsor", "description": "Business need is raised, the vendor is logged in the central inventory.", "tasks": [{"id": "intake_sponsor", "text": "Business sponsor and relationship owner named", "tiers": [1, 2, 3], "satisfies": []}, {"id": "intake_scope", "text": "Service description, data types and processing locations captured", "tiers": [1, 2, 3], "satisfies": []}, {"id": "intake_inventory", "text": "Vendor created in the central third-party inventory", "tiers": [1, 2, 3], "satisfies": ["pra_register"]}, {"id": "intake_conflict", "text": "Conflict-of-interest check completed", "tiers": [1, 2, 3], "requires": ["ict_service"], "satisfies": ["dora_28_4e"]}]}, {"id": 2, "name": "Inherent risk tiering", "line": "2nd line - TPRM", "description": "Inherent risk is scored and the tier (depth of everything that follows) is validated.", "tasks": [{"id": "tier_validated", "text": "Inherent risk score and tier validated by TPRM (2nd line)", "tiers": [1, 2, 3], "satisfies": []}, {"id": "tier_function", "text": "Criticality / importance of the supported function assessed", "tiers": [1, 2, 3], "requires": ["ict_service"], "satisfies": ["dora_28_4a"]}, {"id": "tier_materiality", "text": "Materiality of the outsourcing documented", "tiers": [1, 2], "satisfies": ["pra_materiality", "sii_49"]}]}, {"id": 3, "name": "Due diligence", "line": "2nd line - TPRM / InfoSec / Privacy", "description": "Depth of due diligence scales with the tier.", "tasks": [{"id": "dd_infosec", "text": "Information security assessment reviewed (questionnaire, ISO 27001 / SOC 2)", "tiers": [1, 2, 3], "satisfies": ["nydfs_500_11_dd", "naic_4f_dd", "dora_28_4d", "pra_dd", "eiopa_cloud_dd"]}, {"id": "dd_privacy", "text": "Privacy and data protection review completed", "tiers": [1, 2, 3], "satisfies": ["gdpr_28_dd"]}, {"id": "dd_compliance", "text": "Sanctions, AML/ABC and adverse media screening done", "tiers": [1, 2, 3], "satisfies": []}, {"id": "dd_bcp", "text": "Business continuity and disaster recovery evidence reviewed", "tiers": [1, 2], "satisfies": []}, {"id": "dd_financial", "text": "Financial health assessed", "tiers": [1, 2], "satisfies": []}, {"id": "dd_fourth", "text": "Subcontractor / fourth-party chain mapped", "tiers": [1, 2], "satisfies": []}, {"id": "dd_concentration", "text": "ICT concentration risk assessed", "tiers": [1, 2, 3], "requires": ["ict_service", "critical_function"], "satisfies": ["dora_29"]}, {"id": "dd_pentest", "text": "Independent penetration test results reviewed", "tiers": [1], "satisfies": []}, {"id": "dd_audit", "text": "On-site or virtual audit performed", "tiers": [1], "satisfies": []}]}, {"id": 4, "name": "Risk assessment & acceptance", "line": "2nd line - TPRM / risk owner", "description": "Findings are rated, residual risk is calculated and accepted or escalated.", "tasks": [{"id": "ra_residual", "text": "Findings rated and remediation plan agreed; residual risk reviewed", "tiers": [1, 2, 3], "satisfies": ["dora_28_4c"]}, {"id": "ra_acceptance", "text": "Residual risk acceptance signed by a senior risk owner", "tiers": [1, 2, 3], "when_residual_at_least": "High", "satisfies": []}, {"id": "ra_committee", "text": "Tier 1 vendor presented to the risk committee", "tiers": [1], "satisfies": []}]}, {"id": 5, "name": "Contracting", "line": "1st line / Legal / Procurement", "description": "Contract clauses scale with tier and regulatory scope.", "tasks": [{"id": "ct_security", "text": "Security, audit and access-right clauses agreed (incl. MFA, encryption, event notice)", "tiers": [1, 2, 3], "satisfies": ["nydfs_500_11_contract", "naic_4f_contract"]}, {"id": "ct_dpa", "text": "Data processing agreement signed", "tiers": [1, 2, 3], "satisfies": ["gdpr_28_contract"]}, {"id": "ct_ict_basic", "text": "ICT key contractual provisions included", "tiers": [1, 2, 3], "requires": ["ict_service"], "satisfies": ["dora_30_2", "dora_28_7"]}, {"id": "ct_ict_critical", "text": "Additional provisions for critical or important functions included", "tiers": [1, 2, 3], "requires": ["ict_service", "critical_function"], "satisfies": ["dora_30_3"]}, {"id": "ct_supervisor", "text": "Supervisor access and audit rights included", "tiers": [1, 2], "satisfies": ["sii_274"]}, {"id": "ct_exit", "text": "Termination rights and exit / transition obligations agreed", "tiers": [1, 2], "satisfies": ["eiopa_cloud_exit"]}, {"id": "ct_notify_supervisor", "text": "Supervisor notified before outsourcing a critical or important function", "tiers": [1, 2, 3], "requires": ["critical_function"], "satisfies": ["sii_49_notify", "pra_notify"]}]}, {"id": 6, "name": "Onboarding", "line": "1st line - business owner", "description": "Access, integration and ownership handover.", "tasks": [{"id": "ob_access", "text": "Least-privilege access provisioned", "tiers": [1, 2, 3], "satisfies": []}, {"id": "ob_owner", "text": "Relationship owner briefed on monitoring duties", "tiers": [1, 2, 3], "satisfies": []}, {"id": "ob_exit_plan", "text": "Exit plan documented (stressed and non-stressed)", "tiers": [1, 2, 3], "requires": ["critical_function"], "satisfies": ["dora_28_8", "eiopa_cloud_exit", "pra_exit"]}, {"id": "ob_exit_plan_t1", "text": "Exit plan documented for Tier 1 vendor", "tiers": [1], "satisfies": ["pra_exit", "eiopa_cloud_exit"]}]}, {"id": 7, "name": "Reporting & oversight", "line": "2nd line - TPRM", "description": "Vendor is visible in registers, KRIs and committee reporting.", "tasks": [{"id": "rep_kri", "text": "Vendor included in KRI dashboard and risk-committee reporting", "tiers": [1, 2, 3], "satisfies": []}, {"id": "rep_register", "text": "Register of Information entry validated for supervisory submission", "tiers": [1, 2, 3], "requires": ["ict_service"], "satisfies": ["dora_28_3"]}]}, {"id": 8, "name": "Ongoing monitoring", "line": "1st line owner, 2nd line oversight", "description": "Risk-based periodic reassessment plus continuous signals.", "tasks": [{"id": "mon_reassess", "text": "Periodic reassessment is current (not overdue, no pending trigger)", "tiers": [1, 2, 3], "auto": "reassessment_current", "satisfies": ["nydfs_500_11_periodic"]}, {"id": "mon_signals", "text": "Continuous monitoring signals configured (cyber rating, news, financials)", "tiers": [1, 2], "satisfies": []}, {"id": "mon_sla", "text": "SLA / KPI review completed for the period", "tiers": [1, 2, 3], "satisfies": []}]}, {"id": 9, "name": "Issue & incident management", "line": "1st / 2nd line", "description": "Issues are tracked to closure; required notifications are made.", "tasks": [{"id": "iss_closed", "text": "All issues closed or risk-accepted", "tiers": [1, 2, 3], "auto": "no_open_issues", "satisfies": []}, {"id": "iss_notified", "text": "Required supervisory notifications completed", "tiers": [1, 2, 3], "auto": "notifications_done", "satisfies": ["nydfs_500_17", "dora_19"]}]}, {"id": 10, "name": "Offboarding & exit", "line": "1st line owner", "description": "Orderly exit, data return or destruction, register update.", "tasks": [{"id": "off_data", "text": "Data returned or destroyed with certification", "tiers": [1, 2, 3], "satisfies": []}, {"id": "off_access", "text": "All access revoked", "tiers": [1, 2, 3], "satisfies": []}, {"id": "off_transition", "text": "Transition to replacement provider or in-house completed", "tiers": [1, 2], "satisfies": []}, {"id": "off_register", "text": "Register updated and vendor closed in inventory", "tiers": [1, 2, 3], "satisfies": []}]}]};
+
+/* ------------------------------------------------------------------ helpers */
+const FACTORS = Object.keys(CFG.scoring.factors);
+const FRAMEWORKS = Object.keys(CFG.frameworks);
+const ALL_TASKS = CFG.stages.flatMap(s => s.tasks.map(t => ({ ...t, stage: s.id })));
+const STAGE_COUNT = CFG.stages.length;
+const MONITORING_STAGE = CFG.stages.find(s => s.name === 'Ongoing monitoring').id;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pd = s => { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+const fd = d => d.toISOString().slice(0, 10);
+function addMonths(s, n) {
+  const d = pd(s), t = d.getUTCMonth() + n;
+  const y = d.getUTCFullYear() + Math.floor(t / 12), m = ((t % 12) + 12) % 12;
+  const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  return fd(new Date(Date.UTC(y, m, Math.min(d.getUTCDate(), last))));
+}
+
+/* ------------------------------------------------------------------ scoring */
+const inherentScore = v => +FACTORS.reduce((a, k) => a + CFG.scoring.factors[k].weight * Number(v[k]), 0).toFixed(2);
+function overrideMatches(when, v) {
+  return Object.entries(when).every(([k, exp]) => k.endsWith('_gte') ? Number(v[k.slice(0, -4)] || 0) >= exp : !!v[k] === !!exp);
+}
+function assignTier(v) {
+  const score = inherentScore(v), th = CFG.scoring.tier_thresholds;
+  let tier = score >= th.tier1 ? 1 : score >= th.tier2 ? 2 : 3;
+  const reasons = [`Weighted inherent score ${score.toFixed(2)} gives Tier ${tier} (Tier 1 at ${th.tier1}+, Tier 2 at ${th.tier2}+).`];
+  for (const r of CFG.scoring.overrides) {
+    if (overrideMatches(r.when, v) && tier > r.min_tier) { tier = r.min_tier; reasons.push(`Override "${r.id}" sets Tier ${tier}: ${r.reason}`); }
+  }
+  return { tier, score, reasons };
+}
+const RATINGS = CFG.scoring.residual.ratings.map(r => r.name);
+const ratingFor = s => (CFG.scoring.residual.ratings.find(r => s < r.below) || CFG.scoring.residual.ratings.at(-1)).name;
+const rank = n => RATINGS.indexOf(n);
+function residual(inherent, share, points) {
+  const r = CFG.scoring.residual;
+  const s = Math.min(inherent * (1 - r.dd_mitigation_max * share) + r.residual_per_severity_point * points, 4);
+  const score = Math.round(s * 100) / 100;
+  return { score, rating: ratingFor(score) };
+}
+const healthFor = p => (CFG.monitoring.health.find(h => p <= h.max_points) || CFG.monitoring.health.at(-1)).name;
+
+/* ------------------------------------------------------------------ state */
+const KEY = 'tprm-sim-v1';
+let mem = null;
+const todayReal = () => new Date().toISOString().slice(0, 10);
+const fresh = () => ({ simDate: todayReal(), nextV: 1, nextE: 1, seeded: false, vendors: [], audit: [] });
+function loadState() {
+  try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch (e) { /* storage unavailable */ }
+  return mem ? JSON.parse(mem) : null;
+}
+function save() {
+  const s = JSON.stringify(S); mem = s;
+  try { localStorage.setItem(KEY, s); } catch (e) { /* keep in memory */ }
+}
+let S = loadState() || fresh();
+const UI = { page: 'dash', vid: null, tab: 'workflow', open: {}, regFilter: '', mapFilter: '', flash: null, confirmReset: false, newOpen: false };
+
+function log(vid, action, detail = '') { S.audit.push({ date: S.simDate, vid, action, detail }); }
+const vendorById = id => S.vendors.find(v => v.id === id);
+
+const SAMPLES = [
+  { name: 'Acme Claims TPA Ltd (FICTIONAL)', vtype: 'Claims TPA', country: 'UK', description: 'Third-party administrator handling motor claims intake and payments.', regimes: ['PRA', 'GDPR'], ict_service: false, critical_function: false, data_sensitivity: 4, criticality: 3, system_access: 3, substitutability: 2, regulatory_impact: 3 },
+  { name: 'NimbusCore Cloud GmbH (FICTIONAL)', vtype: 'Cloud / core system', country: 'DE', description: 'Hosts the policy administration platform used for all lines of business.', regimes: ['DORA', 'SII', 'EIOPA', 'GDPR'], ict_service: true, critical_function: true, data_sensitivity: 4, criticality: 4, system_access: 4, substitutability: 4, regulatory_impact: 4 },
+  { name: 'Bluebird BPO Services (FICTIONAL)', vtype: 'Offshore BPO', country: 'PH', description: 'Back-office document indexing and customer-service overflow.', regimes: ['NYDFS', 'NAIC', 'GDPR'], ict_service: false, critical_function: false, data_sensitivity: 3, criticality: 2, system_access: 2, substitutability: 2, regulatory_impact: 2 },
+  { name: 'Quill Actuarial Data Inc (FICTIONAL)', vtype: 'Data provider', country: 'US', description: 'Licensed mortality and catastrophe data feed.', regimes: ['NAIC'], ict_service: false, critical_function: false, data_sensitivity: 1, criticality: 2, system_access: 1, substitutability: 3, regulatory_impact: 1 },
+];
+
+function createVendor(f) {
+  const v = { vtype: 'Other', description: '', country: '', regimes: [], ict_service: false, critical_function: false, ...Object.fromEntries(FACTORS.map(k => [k, 2])), ...f };
+  const t = assignTier(v);
+  Object.assign(v, { id: S.nextV++, tier: t.tier, inherent: t.score, stage: 1, exited: false, created: S.simDate, lastAssessed: S.simDate, flag: false, done: {}, events: [] });
+  S.vendors.push(v);
+  log(v.id, 'Vendor created', `${v.name}. ${t.reasons.join(' ')}`);
+  return v;
+}
+function loadSamples() { SAMPLES.forEach(createVendor); S.seeded = true; }
+
+/* ------------------------------------------------------------------ rules */
+const nextDue = v => addMonths(v.lastAssessed, CFG.monitoring.reassessment_months[v.tier]);
+function autoDone(rule, v) {
+  if (rule === 'no_open_issues') return !v.events.some(e => !e.closedOn);
+  if (rule === 'reassessment_current') return !v.flag && nextDue(v) >= S.simDate;
+  if (rule === 'notifications_done') return v.events.filter(e => e.notifyRequired).every(e => e.notified);
+  throw new Error(rule);
+}
+function taskApplies(t, v, rating) {
+  if (!t.tiers.includes(v.tier)) return false;
+  if ((t.requires || []).some(f => !v[f])) return false;
+  return !(t.when_residual_at_least && rank(rating) < rank(t.when_residual_at_least));
+}
+const taskStatus = (v, rating) => ALL_TASKS.filter(t => taskApplies(t, v, rating)).map(t => ({ ...t, done: t.auto ? autoDone(t.auto, v) : !!v.done[t.id] }));
+function reqApplies(r, v) { return v.regimes.includes(r.framework) && r.tiers.includes(v.tier) && (r.requires || []).every(f => v[f]); }
+function gapsFor(v, tasks) {
+  return CFG.requirements.filter(r => reqApplies(r, v)).map(r => {
+    const ts = tasks.filter(t => (t.satisfies || []).includes(r.id));
+    let state = 'Unmapped';
+    if (ts.length) state = ts.every(t => t.done) ? 'Met' : ts.some(t => !t.done && t.stage <= v.stage) ? 'Open' : 'Upcoming';
+    return { ...r, state, tasks: ts };
+  });
+}
+function view(v) {
+  const points = v.events.filter(e => !e.closedOn).reduce((a, e) => a + e.severity, 0);
+  let rating = ratingFor(v.inherent), tasks, share = 0, res = { score: v.inherent, rating };
+  for (let i = 0; i < 4; i++) {
+    tasks = taskStatus(v, rating);
+    const dd = tasks.filter(t => t.stage === 3);
+    share = dd.length ? dd.filter(t => t.done).length / dd.length : 0;
+    res = residual(v.inherent, share, points);
+    if (res.rating === rating) break;
+    rating = res.rating;
+  }
+  const due = nextDue(v);
+  return {
+    ...v, tasks, share, points, residualScore: res.score, rating, health: healthFor(points), due, overdue: due < S.simDate,
+    blocking: tasks.filter(t => t.stage <= v.stage && !t.done), gaps: gapsFor(v, tasks), tierReasons: assignTier(v).reasons,
+  };
+}
+const allViews = () => S.vendors.map(view);
+const stageName = v => v.exited ? 'Exited' : `${v.stage}. ${CFG.stages[v.stage - 1].name}`;
+function notificationsFor(v, kind) {
+  return (CFG.events[kind].notify || []).filter(n => v.regimes.includes(n.framework) && !(n.framework === 'DORA' && !v.ict_service));
+}
+
+/* ------------------------------------------------------------------ actions */
+const A = {};
+A.nav = el => { UI.page = el.dataset.v; UI.flash = null; UI.confirmReset = false; };
+A.selectVendor = el => { UI.vid = Number(el.value); UI.flash = null; };
+A.tab = el => { UI.tab = el.dataset.v; UI.flash = null; };
+A.toggleStage = el => { const id = Number(el.dataset.id); UI.open[id] = !(UI.open[id] ?? id === currentStageOf()); };
+A.task = el => {
+  const v = vendorById(UI.vid), id = el.dataset.id;
+  if (el.checked) v.done[id] = S.simDate; else delete v.done[id];
+  log(v.id, el.checked ? 'Task completed' : 'Task reopened', id);
+};
+A.advance = () => {
+  const v = vendorById(UI.vid), vw = view(v);
+  if (vw.exited) return;
+  if (vw.blocking.length) { UI.flash = { msg: 'Open tasks block this step: ' + vw.blocking.map(t => t.text).join('; ') }; return; }
+  if (v.stage >= STAGE_COUNT) { v.exited = true; log(v.id, 'Vendor exited', 'Lifecycle complete'); return; }
+  v.stage += 1; UI.open = {};
+  log(v.id, 'Stage advanced', `${v.stage - 1} to ${v.stage}: ${CFG.stages[v.stage - 1].name}`);
+};
+A.fastForward = () => {
+  const v = vendorById(UI.vid);
+  for (let pass = 0; pass < 2; pass++) view(v).tasks.forEach(t => { if (t.stage < MONITORING_STAGE && !t.auto) v.done[t.id] = S.simDate; });
+  v.stage = MONITORING_STAGE; v.exited = false; UI.open = {};
+  log(v.id, 'Fast-forwarded', 'Test shortcut to Ongoing monitoring');
+};
+A.advTime = el => {
+  S.simDate = addMonths(S.simDate, Number(el.dataset.m));
+  log(null, 'Clock advanced', `Simulated date is now ${S.simDate}`);
+};
+A.addEvent = () => {
+  const v = vendorById(UI.vid), kind = $('#ev-kind').value, spec = CFG.events[kind];
+  const required = notificationsFor(v, kind).some(n => n.deadline_hours > 0);
+  v.events.push({ id: S.nextE++, kind, label: spec.label, severity: spec.severity, note: $('#ev-note').value.trim(), openedOn: S.simDate, closedOn: null, resolution: null, notifyRequired: required, notified: false });
+  if (spec.reassessment) v.flag = true;
+  log(v.id, 'Event injected', `${spec.label} (severity ${spec.severity})`);
+};
+A.closeEvent = el => {
+  const v = vendorById(UI.vid), e = v.events.find(x => x.id === Number(el.dataset.id));
+  e.closedOn = S.simDate; e.resolution = el.dataset.res;
+  log(v.id, 'Issue closed', `${e.label}: ${e.resolution}`);
+};
+A.notify = el => {
+  const v = vendorById(UI.vid), e = v.events.find(x => x.id === Number(el.dataset.id));
+  e.notified = el.checked; log(v.id, 'Supervisory notification ' + (el.checked ? 'recorded' : 'cleared'), e.label);
+};
+A.reassess = () => {
+  const v = vendorById(UI.vid); v.lastAssessed = S.simDate; v.flag = false;
+  log(v.id, 'Reassessment recorded', `Next due ${nextDue(v)}`);
+};
+const readRegimes = prefix => FRAMEWORKS.filter(f => $('#' + prefix + f).checked);
+A.rescore = () => {
+  const v = vendorById(UI.vid), before = v.tier;
+  FACTORS.forEach(k => { v[k] = Number($('#rk-f-' + k).value); });
+  v.ict_service = $('#rk-ict').checked; v.critical_function = $('#rk-crit').checked; v.regimes = readRegimes('rk-reg-');
+  const t = assignTier(v); v.tier = t.tier; v.inherent = t.score;
+  log(v.id, 'Risk factors updated', (t.tier !== before ? `Tier changed ${before} to ${t.tier}. ` : '') + t.reasons.join(' '));
+  UI.flash = { ok: true, msg: `Re-scored: inherent ${t.score.toFixed(2)}, Tier ${t.tier}.` };
+};
+A.createVendor = () => {
+  const name = $('#nv-name').value.trim();
+  if (!name) { UI.flash = { msg: 'Enter a vendor name first (use a fictional name).' }; UI.newOpen = true; return; }
+  const f = { name, vtype: $('#nv-type').value, country: $('#nv-country').value.trim(), description: $('#nv-desc').value.trim(), ict_service: $('#nv-ict').checked, critical_function: $('#nv-crit').checked, regimes: readRegimes('nv-reg-') };
+  FACTORS.forEach(k => { f[k] = Number($('#nv-f-' + k).value); });
+  const v = createVendor(f); UI.vid = v.id; UI.tab = 'workflow'; UI.newOpen = false; UI.open = {};
+  UI.flash = { ok: true, msg: `Created ${v.name}: Tier ${v.tier}.` };
+};
+A.loadSamples = () => { loadSamples(); UI.flash = { ok: true, msg: 'Loaded 4 fictional sample vendors.' }; };
+A.reset = () => {
+  if (!UI.confirmReset) { UI.confirmReset = true; return; }
+  S = fresh(); S.seeded = true; UI.vid = null; UI.confirmReset = false; UI.flash = { ok: true, msg: 'All data cleared.' };
+};
+A.copy = el => {
+  const ta = $('#' + el.dataset.target);
+  const fallback = () => { ta.focus(); ta.select(); UI.flash = null; el.textContent = 'Selected - press copy'; };
+  try { navigator.clipboard.writeText(ta.value).then(() => { el.textContent = 'Copied'; }, fallback); } catch (e) { fallback(); }
+  return 'norender';
+};
+A.import = () => {
+  try {
+    const d = JSON.parse($('#backup-in').value);
+    if (!d || !Array.isArray(d.vendors) || !Array.isArray(d.audit)) throw new Error('shape');
+    S = d; UI.vid = null; UI.flash = { ok: true, msg: `Imported ${d.vendors.length} vendors.` };
+  } catch (e) { UI.flash = { msg: 'That text is not a valid backup. Paste the full JSON produced by this page.' }; }
+};
+const currentStageOf = () => { const v = vendorById(UI.vid); return v ? v.stage : 0; };
+const $ = s => document.querySelector(s);
+
+/* ------------------------------------------------------------------ exports */
+const csvCell = x => { const s = String(x ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+const csv = rows => rows.map(r => r.map(csvCell).join(',')).join('\n');
+function registerCsv(vs) {
+  const head = ['vendor_id', 'provider_name', 'country', 'ict_service_type', 'supports_critical_or_important_function', 'tier', 'lifecycle_stage', 'last_assessed', 'next_reassessment_due', 'health', 'residual_rating'];
+  return csv([head, ...vs.filter(v => v.ict_service).map(v => [v.id, v.name, v.country, v.vtype, v.critical_function ? 'yes' : 'no', v.tier, stageName(v), v.lastAssessed, v.due, v.health, v.rating])]);
+}
+const auditCsv = () => csv([['sim_date', 'vendor', 'action', 'detail'], ...S.audit.map(a => [a.date, vendorById(a.vid)?.name ?? '', a.action, a.detail])]);
+function vendorMd(v) {
+  return [`# TPRM vendor report - ${v.name}`, '', `_${CFG.meta.disclaimer.trim()}_`, '', `- Simulated date: ${S.simDate}`, `- Tier: ${v.tier} (inherent score ${v.inherent.toFixed(2)})`,
+    `- Stage: ${stageName(v)}`, `- Residual risk: ${v.rating} (${v.residualScore.toFixed(2)})`, `- Health: ${v.health}`, `- Next reassessment due: ${v.due}`, `- Regimes in scope: ${v.regimes.join(', ') || 'none'}`, '',
+    '## Tiering rationale', ...v.tierReasons.map(r => `- ${r}`), '', '## Tasks', ...v.tasks.map(t => `- [${t.done ? 'x' : ' '}] S${t.stage} ${t.text}`), '',
+    '## Regulatory coverage', '', '| Framework | Ref | State |', '|---|---|---|', ...v.gaps.map(g => `| ${g.framework} | ${g.ref} | ${g.state} |`), '',
+    '## Issues', ...(v.events.length ? v.events.map(e => `- ${e.openedOn} ${e.label} - ${e.resolution || 'OPEN'}`) : ['- none'])].join('\n') + '\n';
+}
+
+/* ------------------------------------------------------------------ views */
+const tierPill = t => `<span class="pill t${t}">Tier ${t}</span>`;
+const healthPill = h => `<span class="pill ${{ Healthy: 'ok', Watch: 'warn', 'At risk': 'warn', Critical: 'bad' }[h]}">${h}</span>`;
+const ratingPill = r => `<span class="pill ${{ Low: 'ok', Medium: 'warn', High: 'bad', Critical: 'bad' }[r]}">${r}</span>`;
+const statePill = s => `<span class="pill ${{ Met: 'ok', Open: 'bad', Upcoming: 'mute', Unmapped: 'warn' }[s]}">${s}</span>`;
+const bars = (items, max) => `<div class="bars">${items.map(([l, n]) => `<div class="bar"><span title="${esc(l)}">${esc(l)}</span><div class="track"><div class="fill" style="width:${max ? (n / max) * 100 : 0}%"></div></div><span class="num">${n}</span></div>`).join('')}</div>`;
+const copyBox = (id, text, label) => `<div class="field"><span class="lab">${label}</span><textarea id="${id}" readonly rows="6">${esc(text)}</textarea><div><button class="btn sm" data-a="copy" data-target="${id}">Copy to clipboard</button></div></div>`;
+
+function pageDash() {
+  const vs = allViews();
+  if (!vs.length) return `<div class="panel"><h2>No vendors yet</h2><p class="muted">Load four fictional sample vendors to see the lifecycle in action, or add your own on the Vendors page.</p><button class="btn primary" data-a="loadSamples">Load sample vendors</button></div>`;
+  const act = vs.filter(v => !v.exited);
+  const openIssues = act.reduce((a, v) => a + v.events.filter(e => !e.closedOn).length, 0);
+  const openGaps = act.reduce((a, v) => a + v.gaps.filter(g => g.state === 'Open').length, 0);
+  const overdue = act.filter(v => v.overdue).length;
+  const byStage = CFG.stages.map(s => [`${s.id}. ${s.name}`, act.filter(v => v.stage === s.id).length]);
+  const byTier = [1, 2, 3].map(t => [`Tier ${t}`, act.filter(v => v.tier === t).length]);
+  const max = Math.max(1, ...byStage.map(x => x[1]), ...byTier.map(x => x[1]));
+  return `
+  <div class="kpis">
+    <div class="kpi"><span class="eyebrow">Active vendors</span><b>${act.length}</b></div>
+    <div class="kpi"><span class="eyebrow">Tier 1</span><b>${act.filter(v => v.tier === 1).length}</b></div>
+    <div class="kpi ${overdue ? 'alert' : ''}"><span class="eyebrow">Overdue reviews</span><b>${overdue}</b></div>
+    <div class="kpi ${openIssues ? 'alert' : ''}"><span class="eyebrow">Open issues</span><b>${openIssues}</b></div>
+    <div class="kpi ${openGaps ? 'alert' : ''}"><span class="eyebrow">Open reg. gaps</span><b>${openGaps}</b></div>
+  </div>
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="panel"><h3>Vendors by lifecycle stage</h3>${bars(byStage, max)}</div>
+    <div class="panel"><h3>Vendors by tier</h3>${bars(byTier, max)}</div>
+  </div>
+  <div class="panel scroll"><h3>Vendor overview</h3>
+    <table><thead><tr><th>Vendor</th><th>Tier</th><th>Stage</th><th>Residual</th><th>Health</th><th>Next review</th><th>Open gaps</th></tr></thead><tbody>
+    ${vs.map(v => `<tr class="click" data-a="openVendor" data-id="${v.id}"><td><b>${esc(v.name)}</b></td><td>${tierPill(v.tier)}</td><td>${esc(stageName(v))}</td><td>${ratingPill(v.rating)} <span class="num muted">${v.residualScore.toFixed(2)}</span></td><td>${healthPill(v.health)}</td><td class="num">${v.due}${v.overdue ? ' <span class="pill bad">overdue</span>' : ''}</td><td class="num">${v.gaps.filter(g => g.state === 'Open').length}</td></tr>`).join('')}
+    </tbody></table></div>
+  <details class="panel" style="margin-top:16px"><summary>Register of Information (simplified DORA-style CSV)</summary>
+    <p class="muted small">Covers ICT-service vendors only. Not the official supervisory template.</p>${copyBox('reg-csv', registerCsv(vs), 'CSV')}</details>`;
+}
+A.openVendor = el => { UI.vid = Number(el.dataset.id); UI.page = 'vendor'; UI.tab = 'workflow'; UI.open = {}; };
+
+function newVendorForm() {
+  return `<details class="panel" style="margin-bottom:16px" ${UI.newOpen ? 'open' : ''}><summary>Add a vendor</summary>
+  <div class="fgrid">
+    <div class="field"><label for="nv-name">Vendor name (use fictional names)</label><input type="text" id="nv-name"></div>
+    <div class="field"><label for="nv-type">Type</label><select id="nv-type">${['Claims TPA', 'MGA / delegated authority', 'Cloud / core system', 'Offshore BPO', 'Data provider', 'Broker', 'Other'].map(t => `<option>${t}</option>`).join('')}</select></div>
+    <div class="field"><label for="nv-country">Country</label><input type="text" id="nv-country" value="UK"></div>
+  </div>
+  <div class="field"><label for="nv-desc">Service description</label><input type="text" id="nv-desc"></div>
+  <div class="checks" style="margin-bottom:12px"><label><input type="checkbox" id="nv-ict"> ICT service (DORA scope)</label><label><input type="checkbox" id="nv-crit"> Supports a critical or important function</label></div>
+  <div class="field"><span class="lab">Regulatory regimes in scope</span><div class="checks">${FRAMEWORKS.map(f => `<label title="${esc(CFG.frameworks[f])}"><input type="checkbox" id="nv-reg-${f}"> ${f}</label>`).join('')}</div></div>
+  <div class="fgrid">${FACTORS.map(k => sliderField('nv-f-' + k, k, 2)).join('')}</div>
+  <button class="btn primary" data-a="createVendor">Create vendor</button></details>`;
+}
+function sliderField(id, k, val) {
+  const f = CFG.scoring.factors[k];
+  return `<div class="field"><label for="${id}">${f.label} <span class="muted small">(weight ${Math.round(f.weight * 100)}%)</span></label><div class="slider"><input type="range" min="1" max="4" step="1" id="${id}" value="${val}" aria-describedby="${id}-h"><output class="num">${val}</output></div><span class="muted small" id="${id}-h">${esc(f.help)}</span></div>`;
+}
+
+function stageTracker(v) {
+  return `<ol class="steps">${CFG.stages.map(s => `<li class="${v.exited || s.id < v.stage ? 'done' : s.id === v.stage ? 'cur' : ''}"><span class="n">${String(s.id).padStart(2, '0')}</span>${esc(s.name)}</li>`).join('')}</ol>`;
+}
+
+function tabWorkflow(v) {
+  const stages = CFG.stages.map(s => {
+    const ts = v.tasks.filter(t => t.stage === s.id);
+    if (!ts.length) return '';
+    const done = ts.filter(t => t.done).length, cur = s.id === v.stage && !v.exited, fut = s.id > v.stage && !v.exited;
+    const open = UI.open[s.id] ?? cur;
+    const back = done < ts.length && s.id < v.stage ? ' <span class="pill warn">backfill</span>' : '';
+    return `<div class="stage ${cur ? 'cur' : ''}"><button data-a="toggleStage" data-id="${s.id}" aria-expanded="${open}"><span class="eyebrow">Stage ${s.id}</span><b>${esc(s.name)}</b><span class="num muted">${done}/${ts.length}</span>${back}</button>
+    ${open ? `<div class="body"><p class="muted small">${esc(s.line)} · ${esc(s.description)}</p>${ts.map(t => t.auto
+      ? `<div class="task auto"><span class="mark" style="color:var(--${t.done ? 'ok' : 'muted'})">${t.done ? '✓' : '○'}</span><span>${esc(t.text)} <span class="pill mute">automatic</span></span></div>`
+      : `<label class="task"><input type="checkbox" data-a="task" data-id="${t.id}" ${t.done ? 'checked' : ''} ${fut || v.exited ? 'disabled' : ''}><span>${esc(t.text)}${t.when_residual_at_least ? ` <span class="pill warn">residual ${t.when_residual_at_least}+</span>` : ''}</span></label>`).join('')}</div>` : ''}</div>`;
+  }).join('');
+  const last = v.stage === STAGE_COUNT;
+  return `${v.exited ? '<div class="flash ok">Lifecycle complete: this vendor has exited.</div>' : ''}${stages}
+  ${v.exited ? '' : `<div class="row" style="margin-top:12px"><button class="btn primary" data-a="advance" ${v.blocking.length ? 'disabled' : ''}>${last ? 'Complete lifecycle (exit vendor)' : 'Advance to next stage'}</button>
+  ${v.blocking.length ? `<span class="muted">${v.blocking.length} task(s) in the current or earlier stages still block this step.</span>` : '<span class="muted">All gate tasks are done.</span>'}</div>`}`;
+}
+
+function tabRisk(v) {
+  return `<div class="kpis"><div class="kpi"><span class="eyebrow">Inherent score</span><b>${v.inherent.toFixed(2)}<span class="muted small"> / 4</span></b></div>
+  <div class="kpi"><span class="eyebrow">Tier</span><b>${v.tier}</b></div>
+  <div class="kpi"><span class="eyebrow">Residual risk</span><b>${v.rating}</b><span class="num muted small">${v.residualScore.toFixed(2)}</span></div></div>
+  <div class="panel" style="margin-bottom:16px"><h3>Why this tier</h3><ul style="margin:0;padding-left:18px">${v.tierReasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
+  <p class="muted small" style="margin-top:8px">Residual = inherent reduced by completed due diligence (${Math.round(v.share * 100)}% done), raised by open issues (${v.points} severity points).</p></div>
+  <div class="panel"><h3>Change risk factors (re-tiers the vendor)</h3>
+  <div class="fgrid">${FACTORS.map(k => sliderField('rk-f-' + k, k, v[k])).join('')}</div>
+  <div class="checks" style="margin-bottom:12px"><label><input type="checkbox" id="rk-ict" ${v.ict_service ? 'checked' : ''}> ICT service (DORA scope)</label><label><input type="checkbox" id="rk-crit" ${v.critical_function ? 'checked' : ''}> Supports a critical or important function</label></div>
+  <div class="field"><span class="lab">Regulatory regimes in scope</span><div class="checks">${FRAMEWORKS.map(f => `<label title="${esc(CFG.frameworks[f])}"><input type="checkbox" id="rk-reg-${f}" ${v.regimes.includes(f) ? 'checked' : ''}> ${f}</label>`).join('')}</div></div>
+  <button class="btn primary" data-a="rescore">Re-score</button></div>`;
+}
+
+function tabReg(v) {
+  if (!v.gaps.length) return '<div class="panel muted">No regulatory regimes are selected for this vendor. Add some on the Risk tab.</div>';
+  const cnt = s => v.gaps.filter(g => g.state === s).length;
+  const fws = [...new Set(v.gaps.map(g => g.framework))];
+  const rows = v.gaps.filter(g => !UI.regFilter || g.framework === UI.regFilter);
+  return `<div class="kpis">${['Met', 'Open', 'Upcoming', 'Unmapped'].map(s => `<div class="kpi ${s === 'Open' && cnt(s) ? 'alert' : ''}"><span class="eyebrow">${s}</span><b>${cnt(s)}</b></div>`).join('')}</div>
+  <p class="muted small">Open: the evidencing task is in the current or an earlier stage and not done. Upcoming: evidence is due in a later stage.</p>
+  <div class="field" style="max-width:260px"><label for="regf">Framework</label><select id="regf" data-a="regFilter"><option value="">All</option>${fws.map(f => `<option ${UI.regFilter === f ? 'selected' : ''}>${f}</option>`).join('')}</select></div>
+  <div class="panel">${rows.map(g => `<div class="req"><div class="head">${statePill(g.state)}<b>${g.framework}</b><span class="mono muted small">${esc(g.ref)}</span></div><div>${esc(g.text)}</div>
+  <div class="muted small">${g.tasks.map(t => `${t.done ? '✓' : '○'} ${esc(t.text)}`).join('<br>')}</div></div>`).join('')}</div>`;
+}
+A.regFilter = el => { UI.regFilter = el.value; };
+
+function tabMon(v) {
+  const months = CFG.monitoring.reassessment_months[v.tier];
+  const kind = $('#ev-kind')?.value || Object.keys(CFG.events)[0];
+  const note = $('#ev-note')?.value || '';
+  return `<div class="kpis"><div class="kpi"><span class="eyebrow">Health</span><b style="font-size:18px">${healthPill(v.health)}</b></div>
+  <div class="kpi"><span class="eyebrow">Cadence</span><b style="font-size:18px">${months} months</b></div>
+  <div class="kpi ${v.overdue ? 'alert' : ''}"><span class="eyebrow">Next review</span><b style="font-size:18px">${v.due}</b></div>
+  <div class="kpi"><span class="eyebrow">Last assessed</span><b style="font-size:18px">${v.lastAssessed}</b></div></div>
+  ${v.flag ? '<div class="flash">A recent event triggered an out-of-cycle reassessment.</div>' : ''}
+  <div class="row" style="margin-bottom:16px"><button class="btn" data-a="reassess">Record reassessment</button><span class="muted small">Resets the review clock and clears any trigger.</span></div>
+  <div class="panel" style="margin-bottom:16px"><h3>Inject a test event</h3>
+  <div class="field"><label for="ev-kind">Event</label><select id="ev-kind" data-a="evKind">${Object.entries(CFG.events).map(([k, e]) => `<option value="${k}" ${k === kind ? 'selected' : ''}>${esc(e.label)} (severity ${e.severity})</option>`).join('')}</select></div>
+  <div class="field"><label for="ev-note">Note (optional)</label><input type="text" id="ev-note" value="${esc(note)}"></div>
+  ${notificationsFor(v, kind).map(n => `<p class="small muted"><b>${n.framework}:</b> ${esc(n.text)}${n.deadline_hours ? ` (within ${n.deadline_hours}h)` : ''}</p>`).join('')}
+  <button class="btn primary" data-a="addEvent">Inject event</button></div>
+  <h3>Issues</h3>${v.events.length ? [...v.events].reverse().map(e => `<div class="issue ${e.closedOn ? '' : 'open'}"><div class="row"><b>${esc(e.label)}</b><span class="muted small">opened ${e.openedOn} · severity ${e.severity}</span>${e.closedOn ? `<span class="pill ok">${e.resolution} ${e.closedOn}</span>` : '<span class="pill bad">open</span>'}</div>
+  ${e.note ? `<p class="muted small">${esc(e.note)}</p>` : ''}
+  <div class="row" style="margin-top:6px">${e.notifyRequired ? `<label class="row small"><input type="checkbox" data-a="notify" data-id="${e.id}" ${e.notified ? 'checked' : ''}> Supervisory notification made</label>` : ''}
+  ${e.closedOn ? '' : `<button class="btn sm" data-a="closeEvent" data-id="${e.id}" data-res="Remediated">Mark remediated</button><button class="btn sm" data-a="closeEvent" data-id="${e.id}" data-res="Risk accepted">Accept risk</button>`}</div></div>`).join('') : '<p class="muted">No issues yet.</p>'}`;
+}
+A.evKind = () => 'keepnote';
+
+function auditTable(rows) {
+  return `<div class="scroll panel"><table><thead><tr><th>Date</th><th>Vendor</th><th>Action</th><th>Detail</th></tr></thead><tbody>${rows.length ? rows.map(a => `<tr><td class="num">${a.date}</td><td>${esc(vendorById(a.vid)?.name ?? '-')}</td><td>${esc(a.action)}</td><td class="muted">${esc(a.detail)}</td></tr>`).join('') : '<tr><td colspan="4" class="muted">Nothing logged yet.</td></tr>'}</tbody></table></div>`;
+}
+function tabReport(v) {
+  return `${copyBox('md-report', vendorMd(v), 'Vendor report (Markdown)')}<h3>Audit trail for this vendor</h3>${auditTable(S.audit.filter(a => a.vid === v.id).reverse())}
+  <details class="panel" style="margin-top:16px"><summary>Test tools</summary><p class="muted small">Ticks every manual task before Ongoing monitoring so you can test events and reassessment quickly.</p><button class="btn" data-a="fastForward">Fast-forward to Ongoing monitoring</button></details>`;
+}
+
+function pageVendor() {
+  const vs = allViews();
+  if (!vs.length) return newVendorForm() + '<div class="panel muted">No vendors yet. Add one above or load the samples on the Setup page.</div>';
+  if (!vs.some(v => v.id === UI.vid)) UI.vid = vs[0].id;
+  const v = vs.find(x => x.id === UI.vid);
+  const tabs = [['workflow', 'Workflow'], ['risk', 'Risk & tiering'], ['reg', 'Regulatory coverage'], ['mon', 'Monitoring & issues'], ['report', 'Report & audit']];
+  const body = { workflow: tabWorkflow, risk: tabRisk, reg: tabReg, mon: tabMon, report: tabReport }[UI.tab](v);
+  return `${newVendorForm()}
+  <div class="field" style="max-width:420px"><label for="vsel">Vendor</label><select id="vsel" data-a="selectVendor">${vs.map(x => `<option value="${x.id}" ${x.id === v.id ? 'selected' : ''}>${esc(x.name)} - Tier ${x.tier}</option>`).join('')}</select></div>
+  <div class="panel"><div class="row" style="justify-content:space-between"><div style="min-width:0"><h2 style="margin:0">${esc(v.name)}</h2><span class="muted">${esc(v.vtype)} · ${esc(v.country)} · ${esc(v.description)}</span></div>
+  <div class="row">${tierPill(v.tier)}${ratingPill(v.rating)}${healthPill(v.health)}</div></div>${stageTracker(v)}</div>
+  <div class="subtabs" role="tablist">${tabs.map(([k, l]) => `<button data-a="tab" data-v="${k}" aria-current="${UI.tab === k}">${l}</button>`).join('')}</div>${body}`;
+}
+
+function pageMap() {
+  const by = {}; ALL_TASKS.forEach(t => (t.satisfies || []).forEach(r => (by[r] = by[r] || []).push(`Stage ${t.stage}: ${t.text}`)));
+  const rows = CFG.requirements.filter(r => !UI.mapFilter || r.framework === UI.mapFilter);
+  return `<p class="muted" style="max-width:70ch">${esc(CFG.meta.disclaimer.trim())}</p>
+  <div class="field" style="max-width:340px"><label for="mapf">Framework</label><select id="mapf" data-a="mapFilter"><option value="">All frameworks</option>${FRAMEWORKS.map(f => `<option value="${f}" ${UI.mapFilter === f ? 'selected' : ''}>${f} - ${esc(CFG.frameworks[f])}</option>`).join('')}</select></div>
+  <div class="panel">${rows.map(r => `<div class="req"><div class="head"><b>${r.framework}</b><span class="mono muted small">${esc(r.ref)}</span><span class="pill mute">Tiers ${r.tiers.join(', ')}</span>${(r.requires || []).map(f => `<span class="pill mute">${f}</span>`).join('')}</div><div>${esc(r.text)}</div><div class="muted small">${(by[r.id] || []).map(esc).join('<br>')}</div></div>`).join('')}</div>`;
+}
+A.mapFilter = el => { UI.mapFilter = el.value; };
+
+function pageAudit() {
+  return `${auditTable([...S.audit].reverse())}<div style="margin-top:16px">${copyBox('audit-csv', auditCsv(), 'Audit log (CSV)')}</div>`;
+}
+
+function pageSetup() {
+  const th = CFG.scoring.tier_thresholds;
+  return `<div class="grid g2">
+  <div class="panel"><h3>Data</h3><p class="muted">Vendors and the audit log are stored in this browser only. Everything here is fictional sample data.</p>
+  <div class="row"><button class="btn primary" data-a="loadSamples">Load 4 sample vendors</button>
+  <button class="btn danger" data-a="reset">${UI.confirmReset ? 'Click again to delete everything' : 'Reset all data'}</button></div></div>
+  <div class="panel"><h3>Backup and restore</h3><p class="muted small">Copy this text somewhere safe. Paste it back below to restore it, for example on another device.</p>
+  ${copyBox('backup-out', JSON.stringify(S), 'Backup (JSON)')}
+  <div class="field"><label for="backup-in">Restore from backup</label><textarea id="backup-in" placeholder="Paste backup JSON here"></textarea></div><button class="btn" data-a="import">Restore</button></div></div>
+  <div class="panel" style="margin-top:16px"><h3>Scoring model</h3><div class="scroll"><table><thead><tr><th>Factor</th><th>Weight</th><th>Scale</th></tr></thead><tbody>${FACTORS.map(k => `<tr><td>${CFG.scoring.factors[k].label}</td><td class="num">${Math.round(CFG.scoring.factors[k].weight * 100)}%</td><td class="muted">${esc(CFG.scoring.factors[k].help)}</td></tr>`).join('')}</tbody></table></div>
+  <p class="muted small" style="margin-top:8px">Tier 1 at ${th.tier1}+, Tier 2 at ${th.tier2}+, otherwise Tier 3. Overrides: ${CFG.scoring.overrides.map(o => esc(o.reason)).join(' ')}</p></div>`;
+}
+
+/* ------------------------------------------------------------------ render */
+const PAGES = [['dash', 'Dashboard', pageDash], ['vendor', 'Vendors', pageVendor], ['map', 'Regulatory map', pageMap], ['audit', 'Audit log', pageAudit], ['setup', 'Setup', pageSetup]];
+function render() {
+  $('#clock').innerHTML = `<span class="eyebrow">Simulated date</span><span class="date">${S.simDate}</span>${[[1, '+1 month'], [6, '+6 months'], [12, '+1 year']].map(([m, l]) => `<button class="btn sm" data-a="advTime" data-m="${m}" title="Move the simulated clock forward to test reassessment cycles">${l}</button>`).join('')}`;
+  $('#nav').innerHTML = PAGES.map(([k, l]) => `<button data-a="nav" data-v="${k}" aria-current="${UI.page === k}">${l}</button>`).join('');
+  const f = UI.flash ? `<div class="flash ${UI.flash.ok ? 'ok' : ''}" role="status">${esc(UI.flash.msg)}</div>` : '';
+  $('#app').innerHTML = f + PAGES.find(p => p[0] === UI.page)[2]();
+  $('#foot').textContent = CFG.meta.disclaimer.trim();
+}
+function act(el) {
+  const fn = A[el.dataset.a];
+  if (!fn) return;
+  if (!['copy', 'evKind'].includes(el.dataset.a)) UI.flash = null;
+  if (fn(el) === 'norender') return;
+  save(); render();
+}
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]');
+  if (!el || el.matches('input[type=checkbox], select, textarea')) return;
+  act(el);
+});
+document.addEventListener('change', e => {
+  const el = e.target.closest('[data-a]');
+  if (el && el.matches('input[type=checkbox], select')) act(el);
+});
+document.addEventListener('input', e => {
+  if (e.target.matches('input[type=range]')) e.target.parentElement.querySelector('output').textContent = e.target.value;
+});
+
+if (!S.seeded && !S.vendors.length) { loadSamples(); save(); }
+render();
+</script>

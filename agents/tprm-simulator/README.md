@@ -24,6 +24,11 @@ streamlit run app.py
 ```
 Then open **Setup** -> *Load 4 fictional sample vendors*.
 
+## Browser version (no install)
+A single-file web port with the same rules lives in `output/tprm-simulator.html` (open it in any browser).
+Source: `web/template.html`; rebuild after editing `config/lifecycle.yaml` with `python web/build.py`.
+Data is saved in the browser only; use Setup -> Backup to move it.
+
 ## Test and lint
 ```bash
 python -m pytest        # logic, config consistency and UI smoke tests
