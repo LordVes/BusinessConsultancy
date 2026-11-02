@@ -27,7 +27,8 @@ I am a management consultant who wants to improve his AI proficiency and impleme
   - `workflows/research-report.md` - Finance, investment and economics research report: clarify first, then research and write
 - `output/` - Finished deliverables (reports, drafts, analysis, memos)
 - `resources/` - Reference docs and templates
-- `agents/` - Code for any agents built here, one subfolder per agent (create when the first agent is built)
+- `agents/` - Code for any agents built here, one subfolder per agent
+  - `agents/tprm-simulator/` - Streamlit app to simulate the TPRM lifecycle (fictional data, regulatory mapping)
 
 ## Secrets and Client Data
 
@@ -36,8 +37,13 @@ I am a management consultant who wants to improve his AI proficiency and impleme
 
 ## Tech Choices
 
-To be decided: language (Python or TypeScript) and framework (Claude API or Claude Agent SDK). Once chosen, record the choice here along with the commands to install dependencies, run, test, and lint.
+- Language: Python 3. UI: Streamlit. Storage: SQLite. Config: YAML.
+- Agent framework (Claude API vs Agent SDK): still to be decided; the TPRM simulator uses no LLM.
 
 ## Commands
 
-None yet. Add them here when the first agent is built.
+Run from `agents/tprm-simulator/`:
+- Install: `pip install -r requirements.txt`
+- Run: `streamlit run app.py`
+- Test: `python -m pytest`
+- Lint: `ruff check .`

@@ -1,0 +1,261 @@
+# TPRM Lifecycle Simulator - editable workflow configuration.
+# Change scoring, tiers, stages, tasks, events or the regulatory map here; no code changes needed.
+# Run `pytest` after editing: tests check that every requirement is covered by at least one task.
+
+meta:
+  title: TPRM Lifecycle Simulator
+  disclaimer: >
+    Simplified teaching model with fictional data. Regulatory references are paraphrased from
+    general knowledge and are NOT legal advice; verify against the current texts before relying on them.
+
+# ---------------------------------------------------------------------------
+# Inherent risk scoring and tiering
+# ---------------------------------------------------------------------------
+scoring:
+  factors:
+    data_sensitivity:
+      label: Data sensitivity
+      help: "1 = public/none, 2 = internal, 3 = personal data, 4 = health/claims/special-category or large volumes"
+      weight: 0.30
+    criticality:
+      label: Operational criticality
+      help: "1 = nice to have, 2 = important, 3 = key process, 4 = business stops without it"
+      weight: 0.30
+    system_access:
+      label: System / network access
+      help: "1 = none, 2 = limited, 3 = privileged to some systems, 4 = deep integration / core systems"
+      weight: 0.15
+    substitutability:
+      label: Difficulty to replace
+      help: "1 = many alternatives, 2 = some, 3 = few, 4 = sole source / long migration"
+      weight: 0.15
+    regulatory_impact:
+      label: Regulatory impact
+      help: "1 = none, 2 = minor, 3 = supervisory interest, 4 = regulated activity delegated"
+      weight: 0.10
+  tier_thresholds:        # weighted score (1.0-4.0) at or above -> tier
+    tier1: 3.0
+    tier2: 2.25           # below this -> tier 3
+  overrides:              # a matching rule forces the tier to be at least this high (1 = highest)
+    - id: critical_service
+      when: { criticality_gte: 4 }
+      min_tier: 1
+      reason: Operational criticality is 4 (business stops without the service).
+    - id: critical_function
+      when: { critical_function: true }
+      min_tier: 1
+      reason: Supports a critical or important function.
+    - id: sensitive_data_with_access
+      when: { data_sensitivity_gte: 4, system_access_gte: 3 }
+      min_tier: 1
+      reason: Highly sensitive data combined with privileged system access.
+    - id: ict_service_floor
+      when: { ict_service: true }
+      min_tier: 2
+      reason: ICT service provider (DORA scope) is at least Tier 2.
+  residual:
+    dd_mitigation_max: 0.40       # residual = inherent * (1 - max * share of due-diligence tasks done) + events
+    residual_per_severity_point: 0.15
+    ratings:                      # first rating whose "below" exceeds the score
+      - { name: Low, below: 2.0 }
+      - { name: Medium, below: 2.75 }
+      - { name: High, below: 3.4 }
+      - { name: Critical, below: 99 }
+
+# ---------------------------------------------------------------------------
+# Ongoing monitoring
+# ---------------------------------------------------------------------------
+monitoring:
+  reassessment_months: { 1: 12, 2: 24, 3: 36 }
+  health:                         # based on severity points of OPEN issues
+    - { name: Healthy, max_points: 0 }
+    - { name: Watch, max_points: 1 }
+    - { name: At risk, max_points: 3 }
+    - { name: Critical, max_points: 999 }
+
+# Events you can inject in the simulator. severity = points while the issue is open.
+events:
+  breach:
+    label: Security breach / cyber incident at vendor
+    severity: 3
+    reassessment: true
+    notify:
+      - { framework: DORA, deadline_hours: 24, text: "Initial notification of a major ICT-related incident to the competent authority (classify first; verify current RTS timelines)" }
+      - { framework: NYDFS, deadline_hours: 72, text: "Notify NYDFS of a cybersecurity event, including at a third-party service provider (23 NYCRR 500.17)" }
+      - { framework: PRA, deadline_hours: 0, text: "Notify the supervisor promptly where the incident is material (PRA expectations)" }
+  service_outage:
+    label: Missed SLA / service outage
+    severity: 1
+    reassessment: false
+    notify:
+      - { framework: DORA, deadline_hours: 24, text: "Assess whether the outage is a major ICT-related incident requiring reporting" }
+  rating_drop:
+    label: External cyber rating drop
+    severity: 1
+    reassessment: false
+    notify: []
+  financial_distress:
+    label: Financial distress / going-concern doubt
+    severity: 2
+    reassessment: true
+    notify: []
+  regulatory_finding:
+    label: Regulatory or enforcement action against vendor
+    severity: 2
+    reassessment: true
+    notify:
+      - { framework: PRA, deadline_hours: 0, text: "Consider whether the supervisor must be informed (material third-party arrangement)" }
+  subcontractor_change:
+    label: Material subcontractor / fourth-party change
+    severity: 1
+    reassessment: true
+    notify:
+      - { framework: DORA, deadline_hours: 0, text: "Check contract notice rights for subcontracting of critical or important functions (Art. 30)" }
+  ownership_change:
+    label: Change of ownership or control
+    severity: 1
+    reassessment: true
+    notify: []
+
+# ---------------------------------------------------------------------------
+# Regulatory requirements (simplified, paraphrased)
+# applies: tiers (list), requires (vendor flags: ict_service, critical_function)
+# ---------------------------------------------------------------------------
+frameworks:
+  DORA: "EU Digital Operational Resilience Act (Reg. 2022/2554)"
+  SII: "EU Solvency II (Dir. 2009/138/EC, Del. Reg. 2015/35)"
+  EIOPA: "EIOPA Guidelines on outsourcing to cloud service providers"
+  PRA: "UK PRA SS2/21 Outsourcing and third party risk management"
+  NYDFS: "NY DFS 23 NYCRR Part 500 (cybersecurity)"
+  NAIC: "NAIC Insurance Data Security Model Law (#668)"
+  GDPR: "EU General Data Protection Regulation"
+
+requirements:
+  - { id: dora_28_3, framework: DORA, ref: "Art. 28(3)", text: "Maintain and update a Register of Information on all contractual arrangements with ICT third-party providers.", tiers: [1, 2, 3], requires: [ict_service] }
+  - { id: dora_28_4a, framework: DORA, ref: "Art. 28(4)(a)", text: "Before contracting, assess whether the ICT service supports a critical or important function.", tiers: [1, 2, 3], requires: [ict_service] }
+  - { id: dora_28_4c, framework: DORA, ref: "Art. 28(4)(c)", text: "Identify and assess all relevant risks of the contractual arrangement before contracting.", tiers: [1, 2, 3], requires: [ict_service] }
+  - { id: dora_28_4d, framework: DORA, ref: "Art. 28(4)(d)", text: "Undertake due diligence on the prospective ICT third-party service provider.", tiers: [1, 2, 3], requires: [ict_service] }
+  - { id: dora_28_4e, framework: DORA, ref: "Art. 28(4)(e)", text: "Identify and assess conflicts of interest arising from the arrangement.", tiers: [1, 2, 3], requires: [ict_service] }
+  - { id: dora_28_7, framework: DORA, ref: "Art. 28(7)", text: "Contractual arrangements must allow termination in defined circumstances (e.g. serious breach, impediments to supervision).", tiers: [1, 2, 3], requires: [ict_service] }
+  - { id: dora_28_8, framework: DORA, ref: "Art. 28(8)", text: "Exit strategies and transition plans for ICT services supporting critical or important functions.", tiers: [1, 2, 3], requires: [ict_service, critical_function] }
+  - { id: dora_29, framework: DORA, ref: "Art. 29", text: "Assess ICT concentration risk (same provider, closely connected providers, hard-to-substitute services) before contracting for critical or important functions.", tiers: [1, 2, 3], requires: [ict_service, critical_function] }
+  - { id: dora_30_2, framework: DORA, ref: "Art. 30(2)", text: "Key contractual provisions for all ICT services (service description, locations, data protection, availability, assistance, cooperation with authorities, termination, subcontracting conditions).", tiers: [1, 2, 3], requires: [ict_service] }
+  - { id: dora_30_3, framework: DORA, ref: "Art. 30(3)", text: "Additional provisions for critical or important functions (full SLAs, notice and reporting duties, contingency plan testing, TLPT participation, exit and transition).", tiers: [1, 2, 3], requires: [ict_service, critical_function] }
+  - { id: dora_19, framework: DORA, ref: "Art. 19", text: "Report major ICT-related incidents (including those originating at a third party) to the competent authority within the required timelines.", tiers: [1, 2, 3], requires: [ict_service] }
+  - { id: sii_49, framework: SII, ref: "Art. 49", text: "Outsourcing of critical or important functions must not impair governance, raise operational risk unduly, impair supervision or continuity; the insurer stays fully responsible.", tiers: [1, 2], requires: [] }
+  - { id: sii_49_notify, framework: SII, ref: "Art. 49(3)", text: "Notify the supervisor in good time before outsourcing critical or important functions.", tiers: [1, 2], requires: [critical_function] }
+  - { id: sii_274, framework: SII, ref: "Del. Reg. Art. 274", text: "Written outsourcing agreement and due diligence, including supervisor access and audit rights, for critical or important functions.", tiers: [1, 2], requires: [critical_function] }
+  - { id: eiopa_cloud_dd, framework: EIOPA, ref: "Cloud Guidelines (due diligence)", text: "Risk assessment and due diligence before outsourcing critical or important functions to a cloud provider.", tiers: [1, 2], requires: [ict_service] }
+  - { id: eiopa_cloud_exit, framework: EIOPA, ref: "Cloud Guidelines (exit)", text: "Documented exit strategy and data portability for cloud outsourcing of critical or important functions.", tiers: [1, 2], requires: [ict_service] }
+  - { id: pra_materiality, framework: PRA, ref: "SS2/21 (materiality)", text: "Assess materiality of each outsourcing and third-party arrangement.", tiers: [1, 2], requires: [] }
+  - { id: pra_dd, framework: PRA, ref: "SS2/21 (due diligence)", text: "Due diligence proportionate to the materiality of the arrangement.", tiers: [1, 2, 3], requires: [] }
+  - { id: pra_register, framework: PRA, ref: "SS2/21 (register)", text: "Maintain a register of all outsourcing and third-party arrangements.", tiers: [1, 2, 3], requires: [] }
+  - { id: pra_exit, framework: PRA, ref: "SS2/21 (exit plans)", text: "Stressed and non-stressed exit plans for material outsourcing.", tiers: [1], requires: [] }
+  - { id: pra_notify, framework: PRA, ref: "SS2/21 (notification)", text: "Notify the PRA before entering or significantly changing a material outsourcing.", tiers: [1, 2], requires: [critical_function] }
+  - { id: nydfs_500_11_dd, framework: NYDFS, ref: "500.11(a)", text: "Third-party service provider policy covering risk assessment, due diligence and periodic assessment.", tiers: [1, 2, 3], requires: [] }
+  - { id: nydfs_500_11_contract, framework: NYDFS, ref: "500.11(b)", text: "Contractual guidelines on access controls (incl. MFA), encryption, event notice and representations.", tiers: [1, 2, 3], requires: [] }
+  - { id: nydfs_500_11_periodic, framework: NYDFS, ref: "500.11(a)", text: "Periodic assessment of third-party service providers based on risk.", tiers: [1, 2, 3], requires: [] }
+  - { id: nydfs_500_17, framework: NYDFS, ref: "500.17(a)", text: "Notify NYDFS within 72 hours of a cybersecurity event, including at a third-party service provider.", tiers: [1, 2, 3], requires: [] }
+  - { id: naic_4f_dd, framework: NAIC, ref: "Sec. 4(F)(1)", text: "Exercise due diligence in selecting third-party service providers.", tiers: [1, 2, 3], requires: [] }
+  - { id: naic_4f_contract, framework: NAIC, ref: "Sec. 4(F)(2)", text: "Require providers by contract to implement appropriate security measures for information systems and nonpublic information.", tiers: [1, 2, 3], requires: [] }
+  - { id: gdpr_28_dd, framework: GDPR, ref: "Art. 28(1)", text: "Use only processors providing sufficient guarantees of appropriate technical and organisational measures.", tiers: [1, 2, 3], requires: [] }
+  - { id: gdpr_28_contract, framework: GDPR, ref: "Art. 28(3)", text: "Processing must be governed by a contract containing the mandatory processor terms.", tiers: [1, 2, 3], requires: [] }
+
+# ---------------------------------------------------------------------------
+# Lifecycle stages and gate tasks
+# Task fields: tiers (applies to), requires (vendor flags), when_residual_at_least (rating),
+# auto (computed by the engine: no_open_issues | reassessment_current | notifications_done),
+# satisfies (requirement ids evidenced by the task)
+# ---------------------------------------------------------------------------
+stages:
+  - id: 1
+    name: Intake & registration
+    line: "1st line - business sponsor"
+    description: Business need is raised, the vendor is logged in the central inventory.
+    tasks:
+      - { id: intake_sponsor, text: "Business sponsor and relationship owner named", tiers: [1, 2, 3], satisfies: [] }
+      - { id: intake_scope, text: "Service description, data types and processing locations captured", tiers: [1, 2, 3], satisfies: [] }
+      - { id: intake_inventory, text: "Vendor created in the central third-party inventory", tiers: [1, 2, 3], satisfies: [pra_register] }
+      - { id: intake_conflict, text: "Conflict-of-interest check completed", tiers: [1, 2, 3], requires: [ict_service], satisfies: [dora_28_4e] }
+  - id: 2
+    name: Inherent risk tiering
+    line: "2nd line - TPRM"
+    description: Inherent risk is scored and the tier (depth of everything that follows) is validated.
+    tasks:
+      - { id: tier_validated, text: "Inherent risk score and tier validated by TPRM (2nd line)", tiers: [1, 2, 3], satisfies: [] }
+      - { id: tier_function, text: "Criticality / importance of the supported function assessed", tiers: [1, 2, 3], requires: [ict_service], satisfies: [dora_28_4a] }
+      - { id: tier_materiality, text: "Materiality of the outsourcing documented", tiers: [1, 2], satisfies: [pra_materiality, sii_49] }
+  - id: 3
+    name: Due diligence
+    line: "2nd line - TPRM / InfoSec / Privacy"
+    description: Depth of due diligence scales with the tier.
+    tasks:
+      - { id: dd_infosec, text: "Information security assessment reviewed (questionnaire, ISO 27001 / SOC 2)", tiers: [1, 2, 3], satisfies: [nydfs_500_11_dd, naic_4f_dd, dora_28_4d, pra_dd, eiopa_cloud_dd] }
+      - { id: dd_privacy, text: "Privacy and data protection review completed", tiers: [1, 2, 3], satisfies: [gdpr_28_dd] }
+      - { id: dd_compliance, text: "Sanctions, AML/ABC and adverse media screening done", tiers: [1, 2, 3], satisfies: [] }
+      - { id: dd_bcp, text: "Business continuity and disaster recovery evidence reviewed", tiers: [1, 2], satisfies: [] }
+      - { id: dd_financial, text: "Financial health assessed", tiers: [1, 2], satisfies: [] }
+      - { id: dd_fourth, text: "Subcontractor / fourth-party chain mapped", tiers: [1, 2], satisfies: [] }
+      - { id: dd_concentration, text: "ICT concentration risk assessed", tiers: [1, 2, 3], requires: [ict_service, critical_function], satisfies: [dora_29] }
+      - { id: dd_pentest, text: "Independent penetration test results reviewed", tiers: [1], satisfies: [] }
+      - { id: dd_audit, text: "On-site or virtual audit performed", tiers: [1], satisfies: [] }
+  - id: 4
+    name: Risk assessment & acceptance
+    line: "2nd line - TPRM / risk owner"
+    description: Findings are rated, residual risk is calculated and accepted or escalated.
+    tasks:
+      - { id: ra_residual, text: "Findings rated and remediation plan agreed; residual risk reviewed", tiers: [1, 2, 3], satisfies: [dora_28_4c] }
+      - { id: ra_acceptance, text: "Residual risk acceptance signed by a senior risk owner", tiers: [1, 2, 3], when_residual_at_least: High, satisfies: [] }
+      - { id: ra_committee, text: "Tier 1 vendor presented to the risk committee", tiers: [1], satisfies: [] }
+  - id: 5
+    name: Contracting
+    line: "1st line / Legal / Procurement"
+    description: Contract clauses scale with tier and regulatory scope.
+    tasks:
+      - { id: ct_security, text: "Security, audit and access-right clauses agreed (incl. MFA, encryption, event notice)", tiers: [1, 2, 3], satisfies: [nydfs_500_11_contract, naic_4f_contract] }
+      - { id: ct_dpa, text: "Data processing agreement signed", tiers: [1, 2, 3], satisfies: [gdpr_28_contract] }
+      - { id: ct_ict_basic, text: "ICT key contractual provisions included", tiers: [1, 2, 3], requires: [ict_service], satisfies: [dora_30_2, dora_28_7] }
+      - { id: ct_ict_critical, text: "Additional provisions for critical or important functions included", tiers: [1, 2, 3], requires: [ict_service, critical_function], satisfies: [dora_30_3] }
+      - { id: ct_supervisor, text: "Supervisor access and audit rights included", tiers: [1, 2], satisfies: [sii_274] }
+      - { id: ct_exit, text: "Termination rights and exit / transition obligations agreed", tiers: [1, 2], satisfies: [eiopa_cloud_exit] }
+      - { id: ct_notify_supervisor, text: "Supervisor notified before outsourcing a critical or important function", tiers: [1, 2, 3], requires: [critical_function], satisfies: [sii_49_notify, pra_notify] }
+  - id: 6
+    name: Onboarding
+    line: "1st line - business owner"
+    description: Access, integration and ownership handover.
+    tasks:
+      - { id: ob_access, text: "Least-privilege access provisioned", tiers: [1, 2, 3], satisfies: [] }
+      - { id: ob_owner, text: "Relationship owner briefed on monitoring duties", tiers: [1, 2, 3], satisfies: [] }
+      - { id: ob_exit_plan, text: "Exit plan documented (stressed and non-stressed)", tiers: [1, 2, 3], requires: [critical_function], satisfies: [dora_28_8, eiopa_cloud_exit, pra_exit] }
+      - { id: ob_exit_plan_t1, text: "Exit plan documented for Tier 1 vendor", tiers: [1], satisfies: [pra_exit, eiopa_cloud_exit] }
+  - id: 7
+    name: Reporting & oversight
+    line: "2nd line - TPRM"
+    description: Vendor is visible in registers, KRIs and committee reporting.
+    tasks:
+      - { id: rep_kri, text: "Vendor included in KRI dashboard and risk-committee reporting", tiers: [1, 2, 3], satisfies: [] }
+      - { id: rep_register, text: "Register of Information entry validated for supervisory submission", tiers: [1, 2, 3], requires: [ict_service], satisfies: [dora_28_3] }
+  - id: 8
+    name: Ongoing monitoring
+    line: "1st line owner, 2nd line oversight"
+    description: Risk-based periodic reassessment plus continuous signals.
+    tasks:
+      - { id: mon_reassess, text: "Periodic reassessment is current (not overdue, no pending trigger)", tiers: [1, 2, 3], auto: reassessment_current, satisfies: [nydfs_500_11_periodic] }
+      - { id: mon_signals, text: "Continuous monitoring signals configured (cyber rating, news, financials)", tiers: [1, 2], satisfies: [] }
+      - { id: mon_sla, text: "SLA / KPI review completed for the period", tiers: [1, 2, 3], satisfies: [] }
+  - id: 9
+    name: Issue & incident management
+    line: "1st / 2nd line"
+    description: Issues are tracked to closure; required notifications are made.
+    tasks:
+      - { id: iss_closed, text: "All issues closed or risk-accepted", tiers: [1, 2, 3], auto: no_open_issues, satisfies: [] }
+      - { id: iss_notified, text: "Required supervisory notifications completed", tiers: [1, 2, 3], auto: notifications_done, satisfies: [nydfs_500_17, dora_19] }
+  - id: 10
+    name: Offboarding & exit
+    line: "1st line owner"
+    description: Orderly exit, data return or destruction, register update.
+    tasks:
+      - { id: off_data, text: "Data returned or destroyed with certification", tiers: [1, 2, 3], satisfies: [] }
+      - { id: off_access, text: "All access revoked", tiers: [1, 2, 3], satisfies: [] }
+      - { id: off_transition, text: "Transition to replacement provider or in-house completed", tiers: [1, 2], satisfies: [] }
+      - { id: off_register, text: "Register updated and vendor closed in inventory", tiers: [1, 2, 3], satisfies: [] }
