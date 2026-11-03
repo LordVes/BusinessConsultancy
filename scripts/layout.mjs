@@ -103,10 +103,11 @@ export function page({ file, title, titleEn, description, main, head = "", scrip
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(description)}">
 ${head}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+  <link rel="preload" href="assets/fonts/source-serif-4-cyrillic-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/source-sans-3-cyrillic-normal.woff2" as="font" type="font/woff2" crossorigin>
   <style>
+${asset("assets/css/fonts.css")}
+
 ${asset("assets/css/tokens.css")}
 
 ${asset("assets/css/styles.css")}

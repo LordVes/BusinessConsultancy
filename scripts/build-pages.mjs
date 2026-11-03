@@ -9,6 +9,9 @@ import {
   WP, SOURCES, INDICATORS, FRAMEWORKS, PUBLIC_TOOL, LEVELS, LENSES, DIMENSIONS,
   PRINCIPLES_WP, PROCESS, PITFALLS, HYPOTHESES,
 } from "./whitepaper.mjs";
+import {
+  WP_EN, SOURCES_EN, INDICATORS_EN, FRAMEWORKS_EN, PUBLIC_TOOL_EN, LEVELS_EN, LENSES_EN, DIMENSIONS_EN, TOC_EN, sectionsEn,
+} from "./whitepaper-en.mjs";
 import { page, arrow, art, insight, t, tb, asset } from "./layout.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -19,10 +22,6 @@ const write = (file, opts) => {
 };
 
 /* ---------- shared blocks ---------- */
-const citeLocal = (...ids) => ids.length
-  ? `<sup class="cite">[${ids.map((i) => `<a href="#src-${i}">${i}</a>`).join(", ")}]</sup>`
-  : "";
-
 const pageHero = ({ crumbs, label, title, lead, extra = "" }) => `
     <section class="page-hero on-inverse">
       <div class="container page-hero__grid">
@@ -39,12 +38,12 @@ const pageHero = ({ crumbs, label, title, lead, extra = "" }) => `
 const home = t("Начало", "Home");
 const wpCard = (lead = true) => insight({
   href: WP.file, lead,
-  type: t("Анализ № 1 · " + WP.dateBg, "Whitepaper no. 1 · 3 November 2026"),
-  title: WP.title,
+  type: t("Анализ № 1 · " + WP.dateBg, "Whitepaper no. 1 · " + WP_EN.dateEn),
+  title: t(WP.title, WP_EN.title),
   excerpt: t(
     "Къде са българските износители с 30–150 заети спрямо ЕС, какво предлагат консултантските рамки за оценка на зрелостта и как една фирма може да започне.",
-    "Where Bulgarian exporters with 30–150 employees stand against the EU, what consulting maturity frameworks offer, and how a firm can start. Text in Bulgarian."),
-  meta: `<span>${t("Автор: " + WP.author + ", " + WP.org, "Author: Ves, MSP Compass")}</span><span>${t(WP.readingTime + " четене", "25 min read")}</span>`,
+    "Where Bulgarian exporters with 30–150 employees stand against the EU, what consulting maturity frameworks offer, and how a firm can start."),
+  meta: `<span>${t("Автор: " + WP.author + ", " + WP.org, "Author: " + WP.author + ", MSP Compass")}</span><span>${t(WP.readingTime + " четене", "25 min read")}</span>`,
   artHtml: art("doc", "navy"),
 });
 const toolCard = () => insight({
@@ -160,7 +159,7 @@ ${pageHero({
   label: t("Анализи", "Whitepapers"),
   title: t("Проблем, данни и подход за решение", "Problem, evidence and a way to address it"),
   lead: t("Всеки анализ описва един проблем на българските средни предприятия износители, показва какво казват данните и как подходите на консултантските компании могат да помогнат.",
-          "Each whitepaper describes one problem faced by Bulgarian mid-sized exporters, shows what the data says and how consulting approaches could help. Texts are in Bulgarian."),
+          "Each whitepaper describes one problem faced by Bulgarian mid-sized exporters, shows what the data says and how consulting approaches could help. Available in Bulgarian and English."),
 })}
 
     <section class="section">
@@ -174,71 +173,92 @@ ${pageHero({
 });
 
 /* ================================================================ whitepaper */
-const fmtSrcList = (src = []) => (src.length ? citeLocal(...src) : "");
+// The article is rendered twice: Bulgarian (default) and English (shown via the EN toggle).
+// English ids carry the prefix "en-" so anchors and source links stay unique.
+const DATA = {
+  bg: { INDICATORS, FRAMEWORKS, PUBLIC_TOOL, DIMENSIONS, LEVELS, LENSES, PRINCIPLES_WP, PROCESS, PITFALLS, HYPOTHESES,
+        srcText: (id) => SOURCES.find((s) => s.id === id).text, P: "" },
+  en: { INDICATORS: INDICATORS_EN, FRAMEWORKS: FRAMEWORKS_EN, PUBLIC_TOOL: PUBLIC_TOOL_EN, DIMENSIONS: DIMENSIONS_EN, LEVELS: LEVELS_EN, LENSES: LENSES_EN,
+        srcText: (id) => SOURCES_EN[id], P: "en-" },
+};
+const LBL = {
+  bg: {
+    indAria: "Таблица: България спрямо ЕС", indCap: "Дял на предприятията с 50–249 заети, освен ако е посочено друго (%)",
+    indicator: "Показател", bgCol: "България", euCol: "ЕС-27", year: "Година",
+    fwAria: "Таблица: консултантски рамки", fwCap: "Рамки за цифрова зрялост на консултантски компании и един публичен инструмент на ЕС",
+    fwCols: ["Рамка", "Измерения", "Скала", "Брой критерии", "Доказателствена база", "Ограничения за фирма с 60 души"],
+    fwShort: ["Измерения", "Скала", "Брой критерии", "Доказателствена база", "Ограничения"], publicTool: "Публичен инструмент",
+    dimAria: "Таблица: осемте измерения", dimCap: "Осемте измерения, ключовият въпрос и какво показват националните данни",
+    dimCols: ["Измерение", "Ключов въпрос", "Национални данни за България"],
+    lvlAria: "Таблица: скала на зрялост", lvlCap: "Скала в четири нива", lvlCols: ["Ниво", "Наименование", "Как изглежда"],
+    lensAria: "Таблица: две гледни точки", lensCap: "Двете гледни точки за всяко измерение", level: "Ниво",
+    criteria: "критерия", toc: "Съдържание",
+  },
+  en: {
+    indAria: "Table: Bulgaria vs the EU", indCap: "Share of enterprises with 50–249 employees unless stated otherwise (%)",
+    indicator: "Indicator", bgCol: "Bulgaria", euCol: "EU-27", year: "Year",
+    fwAria: "Table: consulting frameworks", fwCap: "Digital maturity frameworks from consulting firms, plus one public EU tool",
+    fwCols: ["Framework", "Dimensions", "Scale", "Number of criteria", "Evidence base", "Limits for a 60-person firm"],
+    fwShort: ["Dimensions", "Scale", "Number of criteria", "Evidence base", "Limits"], publicTool: "Public tool",
+    dimAria: "Table: the eight dimensions", dimCap: "The eight dimensions, the key question and what national data shows",
+    dimCols: ["Dimension", "Key question", "National data for Bulgaria"],
+    lvlAria: "Table: maturity scale", lvlCap: "A four-level scale", lvlCols: ["Level", "Name", "What it looks like"],
+    lensAria: "Table: two perspectives", lensCap: "The two perspectives for each dimension", level: "Level",
+    criteria: "criteria", toc: "Contents",
+  },
+};
+const makeCite = (P) => (...ids) => (ids.length
+  ? `<sup class="cite">[${ids.map((i) => `<a href="#${P}src-${i}">${i}</a>`).join(", ")}]</sup>`
+  : "");
 
-const indicatorTable = `<div class="table-wrap" role="region" aria-label="Таблица: България спрямо ЕС" tabindex="0">
-          <table class="data-table">
-            <caption>Дял на предприятията с 50–249 заети, освен ако е посочено друго (%)</caption>
-            <thead><tr><th scope="col">Показател</th><th scope="col" class="t-num">България</th><th scope="col" class="t-num">ЕС-27</th><th scope="col" class="t-num">Година</th></tr></thead>
+function wpParts(lang) {
+  const D = DATA[lang], L = LBL[lang], c = makeCite(D.P);
+  const wrap = (aria, cls, cap, head, body) => `<div class="table-wrap" role="region" aria-label="${aria}" tabindex="0">
+          <table class="${cls}">
+            <caption>${cap}</caption>
+            <thead><tr>${head}</tr></thead>
             <tbody>
-              ${INDICATORS.map((r) => `<tr><th scope="row">${r.name} ${citeLocal(...r.src)}</th><td class="t-num">${r.bg}</td><td class="t-num">${r.eu}</td><td class="t-num">${r.year}</td></tr>`).join("\n              ")}
+              ${body}
             </tbody>
           </table>
         </div>`;
-
-const fwRow = (f) => `<tr>
-                <th scope="row">${f.name}<span class="dma-sub">${f.by} ${citeLocal(...f.src)}</span></th>
-                <td data-label="Измерения">${f.dims}</td><td data-label="Скала">${f.scale}</td><td data-label="Брой критерии">${f.criteria}</td><td data-label="Доказателствена база">${f.evidence}</td><td data-label="Ограничения">${f.limits}</td>
+  const fwRow = (f) => `<tr>
+                <th scope="row">${f.name}<span class="dma-sub">${f.by} ${c(...f.src)}</span></th>
+                ${[f.dims, f.scale, f.criteria, f.evidence, f.limits].map((v, i) => `<td data-label="${L.fwShort[i]}">${v}</td>`).join("")}
               </tr>`;
-const fwTable = `<div class="table-wrap" role="region" aria-label="Таблица: консултантски рамки" tabindex="0">
-          <table class="data-table data-table--wide data-table--stack">
-            <caption>Рамки за цифрова зрялост на консултантски компании и един публичен инструмент на ЕС</caption>
-            <thead><tr><th scope="col">Рамка</th><th scope="col">Измерения</th><th scope="col">Скала</th><th scope="col">Брой критерии</th><th scope="col">Доказателствена база</th><th scope="col">Ограничения за фирма с 60 души</th></tr></thead>
-            <tbody>
-              ${FRAMEWORKS.map(fwRow).join("\n              ")}
-              <tr class="data-table__group"><th scope="rowgroup" colspan="6">Публичен инструмент</th></tr>
-              ${fwRow(PUBLIC_TOOL)}
-            </tbody>
-          </table>
-        </div>`;
-
-const dimTable = `<div class="table-wrap" role="region" aria-label="Таблица: осемте измерения" tabindex="0">
-          <table class="data-table">
-            <caption>Осемте измерения, ключовият въпрос и какво показват националните данни</caption>
-            <thead><tr><th scope="col">Измерение</th><th scope="col">Ключов въпрос</th><th scope="col">Национални данни за България</th></tr></thead>
-            <tbody>
-              ${DIMENSIONS.map((d, i) => `<tr><th scope="row">${i + 1}. ${d.name}</th><td>${d.question}</td><td>${d.data} ${fmtSrcList(d.src)}</td></tr>`).join("\n              ")}
-            </tbody>
-          </table>
-        </div>`;
-
-const levelTable = `<div class="table-wrap" role="region" aria-label="Таблица: скала на зрялост" tabindex="0">
-          <table class="data-table">
-            <caption>Скала в четири нива</caption>
-            <thead><tr><th scope="col" class="t-num">Ниво</th><th scope="col">Наименование</th><th scope="col">Как изглежда</th></tr></thead>
-            <tbody>
-              ${LEVELS.map((l) => `<tr><td class="t-num"><span class="lvl lvl--${l.n}">${l.n}</span></td><th scope="row">${l.name}</th><td>${l.text}</td></tr>`).join("\n              ")}
-            </tbody>
-          </table>
-        </div>`;
-
-const lensTable = `<div class="table-wrap" role="region" aria-label="Таблица: две гледни точки" tabindex="0">
-          <table class="data-table">
-            <caption>Двете гледни точки за всяко измерение</caption>
-            <thead><tr><th scope="col" class="t-num">Ниво</th><th scope="col">${LENSES.manage.name}: ${LENSES.manage.q}</th><th scope="col">${LENSES.use.name}: ${LENSES.use.q}</th></tr></thead>
-            <tbody>
-              ${[0, 1, 2, 3].map((i) => `<tr><td class="t-num">${i + 1}</td><td>${LENSES.manage.levels[i]}</td><td>${LENSES.use.levels[i]}</td></tr>`).join("\n              ")}
-            </tbody>
-          </table>
-        </div>`;
-
-const criteriaAppendix = DIMENSIONS.map((d, i) => `<details class="crit-group">
-            <summary><span class="t-h4">${i + 1}. ${d.name}</span><span class="dma-sub">${d.criteria.length} критерия</span></summary>
-            ${d.criteria.map((c) => `<div class="crit">
-              <p class="crit__name">${c.id.toUpperCase()} · ${c.name}</p>
-              <ol class="crit__levels">${c.levels.map((l, j) => `<li><span class="lvl lvl--${j + 1}">${j + 1}</span><span>${l}</span></li>`).join("")}</ol>
+  return {
+    P: D.P,
+    cite: c,
+    srcUrl: (id) => SOURCES.find((s) => s.id === id).url,
+    indicatorTable: wrap(L.indAria, "data-table", L.indCap,
+      `<th scope="col">${L.indicator}</th><th scope="col" class="t-num">${L.bgCol}</th><th scope="col" class="t-num">${L.euCol}</th><th scope="col" class="t-num">${L.year}</th>`,
+      D.INDICATORS.map((r) => `<tr><th scope="row">${r.name} ${c(...r.src)}</th><td class="t-num">${r.bg}</td><td class="t-num">${r.eu}</td><td class="t-num">${r.year}</td></tr>`).join("\n              ")),
+    fwTable: wrap(L.fwAria, "data-table data-table--wide data-table--stack", L.fwCap,
+      L.fwCols.map((h) => `<th scope="col">${h}</th>`).join(""),
+      `${D.FRAMEWORKS.map(fwRow).join("\n              ")}
+              <tr class="data-table__group"><th scope="rowgroup" colspan="6">${L.publicTool}</th></tr>
+              ${fwRow(D.PUBLIC_TOOL)}`),
+    dimTable: wrap(L.dimAria, "data-table", L.dimCap,
+      L.dimCols.map((h) => `<th scope="col">${h}</th>`).join(""),
+      D.DIMENSIONS.map((d, i) => `<tr><th scope="row">${i + 1}. ${d.name}</th><td>${d.question}</td><td>${d.data} ${c(...(d.src || []))}</td></tr>`).join("\n              ")),
+    levelTable: wrap(L.lvlAria, "data-table", L.lvlCap,
+      `<th scope="col" class="t-num">${L.lvlCols[0]}</th><th scope="col">${L.lvlCols[1]}</th><th scope="col">${L.lvlCols[2]}</th>`,
+      D.LEVELS.map((l) => `<tr><td class="t-num"><span class="lvl lvl--${l.n}">${l.n}</span></td><th scope="row">${l.name}</th><td>${l.text}</td></tr>`).join("\n              ")),
+    lensTable: wrap(L.lensAria, "data-table", L.lensCap,
+      `<th scope="col" class="t-num">${L.level}</th><th scope="col">${D.LENSES.manage.name}: ${D.LENSES.manage.q}</th><th scope="col">${D.LENSES.use.name}: ${D.LENSES.use.q}</th>`,
+      [0, 1, 2, 3].map((i) => `<tr><td class="t-num">${i + 1}</td><td>${D.LENSES.manage.levels[i]}</td><td>${D.LENSES.use.levels[i]}</td></tr>`).join("\n              ")),
+    criteriaAppendix: D.DIMENSIONS.map((d, i) => `<details class="crit-group">
+            <summary><span class="t-h4">${i + 1}. ${d.name}</span><span class="dma-sub">${d.criteria.length} ${L.criteria}</span></summary>
+            ${d.criteria.map((cr) => `<div class="crit">
+              <p class="crit__name">${cr.id.toUpperCase()} · ${cr.name}</p>
+              <ol class="crit__levels">${cr.levels.map((l, j) => `<li><span class="lvl lvl--${j + 1}">${j + 1}</span><span>${l}</span></li>`).join("")}</ol>
             </div>`).join("\n            ")}
-          </details>`).join("\n          ");
+          </details>`).join("\n          "),
+    sourcesList: `<ol class="sources">
+            ${SOURCES.map((s) => `<li id="${D.P}src-${s.id}"><span>${D.srcText(s.id)}.</span> <a href="${s.url}" rel="noopener">${s.url.replace(/^https?:\/\//, "").slice(0, 90)}${s.url.length > 98 ? "…" : ""}</a></li>`).join("\n            ")}
+          </ol>`,
+  };
+}
 
 const TOC = [
   ["rezyume", "Резюме"],
@@ -256,14 +276,16 @@ const TOC = [
   ["iztochnici", "Източници"],
 ];
 
-const wpSections = [
+const sectionsBg = (x) => {
+  const c = x.cite;
+  return [
   ["rezyume", "Резюме", `
           <div class="glance">
             <ul>
-              <li><strong>38,3% от българските МСП</strong> (10–249 заети) достигат поне основно ниво на цифрова интензивност през 2025 г. при 71,4% в ЕС. Това е едно от най-ниските нива в ЕС и е под траекторията в националната пътна карта. ${citeLocal(1, 9)}</li>
-              <li><strong>При фирмите с 50–249 заети</strong> нивото е по-високо, но разликата остава: 55,4% срещу 86,7%. ERP използват 41,9% (ЕС: 69,9%), CRM 16,8% (ЕС: 43,8%). ${citeLocal(1, 5)}</li>
-              <li><strong>Разликата в изкуствения интелект расте:</strong> при фирмите с 50–249 заети тя се увеличава от 7,5 процентни пункта през 2023 г. до 17,1 пункта през 2025 г. ${citeLocal(2)}</li>
-              <li><strong>По сигурност България е последна в ЕС:</strong> 31,3% от българските предприятия прилагат поне 5 от 11 мерки за киберсигурност при 56,9% в ЕС, най-ниският дял в ЕС (2024). ${citeLocal(9)}</li>
+              <li><strong>38,3% от българските МСП</strong> (10–249 заети) достигат поне основно ниво на цифрова интензивност през 2025 г. при 71,4% в ЕС. Това е едно от най-ниските нива в ЕС и е под траекторията в националната пътна карта. ${c(1, 9)}</li>
+              <li><strong>При фирмите с 50–249 заети</strong> нивото е по-високо, но разликата остава: 55,4% срещу 86,7%. ERP използват 41,9% (ЕС: 69,9%), CRM 16,8% (ЕС: 43,8%). ${c(1, 5)}</li>
+              <li><strong>Разликата в изкуствения интелект расте:</strong> при фирмите с 50–249 заети тя се увеличава от 7,5 процентни пункта през 2023 г. до 17,1 пункта през 2025 г. ${c(2)}</li>
+              <li><strong>По сигурност България е последна в ЕС:</strong> 31,3% от българските предприятия прилагат поне 5 от 11 мерки за киберсигурност при 56,9% в ЕС, най-ниският дял в ЕС (2024). ${c(9)}</li>
               <li><strong>Прегледахме 6 консултантски рамки и 1 публичен инструмент на ЕС.</strong> Всички съчетават стратегия и операции, но бенчмарковете им са изградени върху големи компании.</li>
               <li><strong>Предлагаме подход в 8 измерения и 4 нива</strong> с 30 наблюдаеми критерия и безплатна самооценка, която работи изцяло във вашия браузър.</li>
               <li><strong>Пет хипотези</strong> са формулирани за проверка. Все още няма резултати от проучване.</li>
@@ -272,15 +294,15 @@ const wpSections = [
 
   ["zashto", "1. Защо темата е важна за износителите", `
           <p class="t-body">Този анализ е за собственици и управители на български фирми с 30–150 заети, които изнасят. За тях цифровата зрялост засяга пряко начина, по който работят с чуждестранните клиенти: как приемат поръчки, как издават документи, как проследяват партиди и как доказват, че данните им са защитени.</p>
-          <p class="t-body">Групата е важна за износа. През 2024 г. 899 български производствени предприятия с 50–249 заети са изнасяли стоки, или 28% от всички производители износители. Те формират 18,0% от стойността на износа на стоки от преработващата промишленост; 77,1% се падат на предприятията с 250 и повече заети. ${citeLocal(8)} Тези данни показват броя на износителите и стойността на износа, но не и какъв дял от оборота на фирмата е износ. Такъв показател по размер на фирмата не открихме.</p>
-          <p class="t-body">Европейската комисия отбелязва, че ниската цифрова интензивност на МСП може да ограничи растежа на производителността и мястото на българските фирми в по-високите звена на европейските вериги на стойност. ${citeLocal(9)}</p>`],
+          <p class="t-body">Групата е важна за износа. През 2024 г. 899 български производствени предприятия с 50–249 заети са изнасяли стоки, или 28% от всички производители износители. Те формират 18,0% от стойността на износа на стоки от преработващата промишленост; 77,1% се падат на предприятията с 250 и повече заети. ${c(8)} Тези данни показват броя на износителите и стойността на износа, но не и какъв дял от оборота на фирмата е износ. Такъв показател по размер на фирмата не открихме.</p>
+          <p class="t-body">Европейската комисия отбелязва, че ниската цифрова интензивност на МСП може да ограничи растежа на производителността и мястото на българските фирми в по-високите звена на европейските вериги на стойност. ${c(9)}</p>`],
 
   ["dnes", "2. Къде сме днес: данните", `
-          <p class="t-body">Евростат измерва цифровизацията на предприятията с годишно проучване, което в България се провежда от НСИ. Проучването обхваща фирмите с 10 и повече заети. ${citeLocal(11)}</p>
-          <p class="t-body">През 2025 г. 38,3% от българските МСП (10–249 заети) достигат поне основно ниво на цифрова интензивност при 71,4% в ЕС. През 2023 г. делът е бил 28,4% при 57,9% в ЕС. ${citeLocal(1, 9)} Част от този ръст може да се дължи на промяна в начина на изчисление: през 2025 г. показателят за използване на социални мрежи е заменен с наличие на уебсайт, който обикновено има по-висок дял. ${citeLocal(10)} Според ЕК България изостава от траекторията в своята национална пътна карта. ${citeLocal(9)}</p>
-          ${indicatorTable}
-          <p class="t-body"><strong>Какво се вижда в таблицата.</strong> Разликата е най-голяма при системите, които свързват функциите и превръщат данните в решения: CRM (16,8% срещу 43,8%) и софтуер за бизнес анализи (12,3% срещу 34,3%). ${citeLocal(5)} При изкуствения интелект разликата расте: през 2025 г. 8,55% от всички предприятия с 10 и повече заети използват поне една технология с ИИ при 19,95% в ЕС. ${citeLocal(2)} Около 16% от тези предприятия продават по електронен път (16,2% срещу 23,6% в ЕС). ${citeLocal(4)}</p>
-          <p class="t-body">Разликата при наемането на ИКТ специалисти е по-малка от разликите при технологиите: 31,5% срещу 43,0% при фирмите с 50–249 заети през 2024 г. ${citeLocal(7)} В проучване на БСК от 2025 г. сред 847 фирми 40% посочват липсата на цифрови умения като основна пречка, 33% посочват финансовите ограничения, а 15% ограничения достъп до информация. ${citeLocal(9)}</p>
+          <p class="t-body">Евростат измерва цифровизацията на предприятията с годишно проучване, което в България се провежда от НСИ. Проучването обхваща фирмите с 10 и повече заети. ${c(11)}</p>
+          <p class="t-body">През 2025 г. 38,3% от българските МСП (10–249 заети) достигат поне основно ниво на цифрова интензивност при 71,4% в ЕС. През 2023 г. делът е бил 28,4% при 57,9% в ЕС. ${c(1, 9)} Част от този ръст може да се дължи на промяна в начина на изчисление: през 2025 г. показателят за използване на социални мрежи е заменен с наличие на уебсайт, който обикновено има по-висок дял. ${c(10)} Според ЕК България изостава от траекторията в своята национална пътна карта. ${c(9)}</p>
+          ${x.indicatorTable}
+          <p class="t-body"><strong>Какво се вижда в таблицата.</strong> Разликата е най-голяма при системите, които свързват функциите и превръщат данните в решения: CRM (16,8% срещу 43,8%) и софтуер за бизнес анализи (12,3% срещу 34,3%). ${c(5)} При изкуствения интелект разликата расте: през 2025 г. 8,55% от всички предприятия с 10 и повече заети използват поне една технология с ИИ при 19,95% в ЕС. ${c(2)} Около 16% от тези предприятия продават по електронен път (16,2% срещу 23,6% в ЕС). ${c(4)}</p>
+          <p class="t-body">Разликата при наемането на ИКТ специалисти е по-малка от разликите при технологиите: 31,5% срещу 43,0% при фирмите с 50–249 заети през 2024 г. ${c(7)} В проучване на БСК от 2025 г. сред 847 фирми 40% посочват липсата на цифрови умения като основна пречка, 33% посочват финансовите ограничения, а 15% ограничения достъп до информация. ${c(9)}</p>
           <aside class="callout">
             <p class="t-label t-label--accent">Как да четем тези числа</p>
             <ul>
@@ -293,13 +315,13 @@ const wpSections = [
 
   ["ramki", "3. Какво предлагат консултантските рамки", `
           <p class="t-body">Прегледахме шест рамки за цифрова зрялост, публикувани от консултантски компании, и един публичен инструмент на ЕС. За всяка записахме измеренията, скалата, броя на критериите, доказателствената база, датата и ограниченията за фирма с около 60 заети.</p>
-          ${fwTable}
+          ${x.fwTable}
           <p class="t-body"><strong>Какво не използвахме.</strong> Не открихме използваем първичен източник от McKinsey: сайтът mckinsey.com не можа да бъде отворен от нашата среда, затова не разчитаме на вторични описания на рамката Digital Quotient. Страниците на PwC и Strategy& за Industry 4.0 отказаха достъп, а основната страница на Deloitte Румъния за Digital DNA не е налична. Тези рамки не са включени в таблицата. Добавихме Bain, чиято страница е достъпна.</p>
           <h3 class="t-h3">Какво е общото: нашето прочитане</h3>
           <ul class="ticks">
-            <li>Всички рамки съчетават стратегия и операции. Deloitte отчита, че фокусът само върху едното от двете не носи очаквания ефект върху печалбата и приходите. ${citeLocal(14)}</li>
-            <li>Скалите са между 3 и 6 нива и описват преход от отделни инициативи към цялостна промяна. ${citeLocal(12, 13, 14, 15)}</li>
-            <li>KPMG разделя две гледни точки: колко целенасочено се управлява цифровизацията и колко широко се използва. ${citeLocal(15)} Заимстваме тази идея.</li>
+            <li>Всички рамки съчетават стратегия и операции. Deloitte отчита, че фокусът само върху едното от двете не носи очаквания ефект върху печалбата и приходите. ${c(14)}</li>
+            <li>Скалите са между 3 и 6 нива и описват преход от отделни инициативи към цялостна промяна. ${c(12, 13, 14, 15)}</li>
+            <li>KPMG разделя две гледни точки: колко целенасочено се управлява цифровизацията и колко широко се използва. ${c(15)} Заимстваме тази идея.</li>
             <li>Бенчмарковете на консултантските компании са изградени основно върху големи компании. За фирма с 60 души сравнението с „лидерите“ е по-малко полезно от профила спрямо собствените ѝ цели.</li>
           </ul>`],
 
@@ -310,13 +332,13 @@ const wpSections = [
             ${PRINCIPLES_WP.map((p) => `<li><div class="stack stack--xs"><h4 class="t-h4">${p.name}</h4><p class="t-body">${p.text}</p></div></li>`).join("\n            ")}
           </ol>
           <h3 class="t-h3">Осем измерения</h3>
-          ${dimTable}
+          ${x.dimTable}
           <h3 class="t-h3">Четири нива</h3>
           <p class="t-body">Всеки от 30-те критерия има описание за всяко ниво, което може да се провери на място. Пълният списък е в <a href="#kriterii">приложението</a> и в <a href="samoocenka-digitalna-zrelost.html">самооценката</a>.</p>
-          ${levelTable}
+          ${x.levelTable}
           <h3 class="t-h3">Две гледни точки</h3>
           <p class="t-body">За всяко измерение се отговаря и на два въпроса: колко целенасочено се управлява и колко широко се използва. Фирма може да има добре управляван проект, който се ползва само в един отдел, или обратното. Двете оценки показват къде е проблемът.</p>
-          ${lensTable}`],
+          ${x.lensTable}`],
 
   ["proces", "5. Процесът: 4–6 седмици", `
           <ol class="steps-big">
@@ -332,17 +354,17 @@ const wpSections = [
           <h3 class="t-h3">Самооценка</h3>
           <p class="t-body"><a href="samoocenka-digitalna-zrelost.html">Самооценката</a> съдържа същите 30 критерия. Показва профил по измерения, най-слабия критерий във всяко измерение и как изглежда следващото ниво. Изчислява се изцяло във вашия браузър; нищо не се изпраща.</p>
           <h3 class="t-h3">Оценка чрез европейски център за цифрови иновации</h3>
-          <p class="t-body">В България работят 12 европейски центъра за цифрови иновации (EDIH), финансирани с 31,8 млн. евро по програмата PRIDST. ${citeLocal(9)} Те прилагат общоевропейския инструмент DMA преди и след своята подкрепа. ${citeLocal(18)} Според ЕК достъпът до услугите им се затруднява от административна сложност. ${citeLocal(9)} Списъкът на центровете е в <a href="${SOURCES.find((s) => s.id === 21).url}" rel="noopener">каталога на ЕК</a>. ${citeLocal(21)}</p>
+          <p class="t-body">В България работят 12 европейски центъра за цифрови иновации (EDIH), финансирани с 31,8 млн. евро по програмата PRIDST. ${c(9)} Те прилагат общоевропейския инструмент DMA преди и след своята подкрепа. ${c(18)} Според ЕК достъпът до услугите им се затруднява от административна сложност. ${c(9)} Списъкът на центровете е в <a href="${x.srcUrl(21)}" rel="noopener">каталога на ЕК</a>. ${c(21)}</p>
           <h3 class="t-h3">Програми за финансиране</h3>
           <div class="table-wrap" role="region" aria-label="Таблица: програми за финансиране" tabindex="0">
             <table class="data-table data-table--stack">
               <caption>Проверени данни за програми 2021–2027 (условията се променят; проверявайте актуалната процедура)</caption>
               <thead><tr><th scope="col">Програма или мярка</th><th scope="col">Какво финансира</th><th scope="col">За кого</th><th scope="col">Бележка</th></tr></thead>
               <tbody>
-                <tr><th scope="row">ПКИП, „Дигитализация на предприятията“ (методология от април 2025 г.) ${citeLocal(19)}</th><td data-label="Какво финансира">Инвестиции в ИКТ; от 5 000 до 50 000 лв. на проект, до 70% безвъзмездна помощ, режим de minimis; общ бюджет 80 млн. лв.</td><td data-label="За кого">Само микро и малки предприятия</td><td data-label="Бележка">Фирмите с 50 и повече заети не са допустими по тази процедура.</td></tr>
-                <tr><th scope="row">ПКИП, мерки „Дигитализация на предприятията“ и „Въвеждане на технологии на Индустрия 4.0“ ${citeLocal(9)}</th><td data-label="Какво финансира">Според ЕК: над 1 600 одобрени проекта за 29,58 млн. евро, с изпълнение от 2026 г.</td><td data-label="За кого">Не сме проверили условията за средни предприятия</td><td data-label="Бележка">Проверете в ИСУН. ${citeLocal(20)}</td></tr>
-                <tr><th scope="row">ПРЧР (Програма „Развитие на човешките ресурси“) ${citeLocal(9)}</th><td data-label="Какво финансира">Обучения за цифрови умения на заети: операции „Digital Skills“ (20,5 млн. евро), „New Skills“ (38 млн. евро) и „Qualification, Skills and Career Development of Employed Persons“ (около 62 млн. евро)</td><td data-label="За кого">Работници и фирми</td><td data-label="Бележка">Имената са по доклада на ЕК; българските наименования и условия проверете в ИСУН. ${citeLocal(20)}</td></tr>
-                <tr><th scope="row">„Digital Bulgaria – SMEs“ ${citeLocal(9)}</th><td data-label="Какво финансира">Безвъзмездна помощ за киберсигурност: 61 договора за около 1,8 млн. евро (юни 2025 – март 2026 г.)</td><td data-label="За кого">МСП</td><td data-label="Бележка">Приключила; показва посоката на подкрепата.</td></tr>
+                <tr><th scope="row">ПКИП, „Дигитализация на предприятията“ (методология от април 2025 г.) ${c(19)}</th><td data-label="Какво финансира">Инвестиции в ИКТ; от 5 000 до 50 000 лв. на проект, до 70% безвъзмездна помощ, режим de minimis; общ бюджет 80 млн. лв.</td><td data-label="За кого">Само микро и малки предприятия</td><td data-label="Бележка">Фирмите с 50 и повече заети не са допустими по тази процедура.</td></tr>
+                <tr><th scope="row">ПКИП, мерки „Дигитализация на предприятията“ и „Въвеждане на технологии на Индустрия 4.0“ ${c(9)}</th><td data-label="Какво финансира">Според ЕК: над 1 600 одобрени проекта за 29,58 млн. евро, с изпълнение от 2026 г.</td><td data-label="За кого">Не сме проверили условията за средни предприятия</td><td data-label="Бележка">Проверете в ИСУН. ${c(20)}</td></tr>
+                <tr><th scope="row">ПРЧР (Програма „Развитие на човешките ресурси“) ${c(9)}</th><td data-label="Какво финансира">Обучения за цифрови умения на заети: операции „Digital Skills“ (20,5 млн. евро), „New Skills“ (38 млн. евро) и „Qualification, Skills and Career Development of Employed Persons“ (около 62 млн. евро)</td><td data-label="За кого">Работници и фирми</td><td data-label="Бележка">Имената са по доклада на ЕК; българските наименования и условия проверете в ИСУН. ${c(20)}</td></tr>
+                <tr><th scope="row">„Digital Bulgaria – SMEs“ ${c(9)}</th><td data-label="Какво финансира">Безвъзмездна помощ за киберсигурност: 61 договора за около 1,8 млн. евро (юни 2025 – март 2026 г.)</td><td data-label="За кого">МСП</td><td data-label="Бележка">Приключила; показва посоката на подкрепата.</td></tr>
               </tbody>
             </table>
           </div>`],
@@ -350,10 +372,10 @@ const wpSections = [
   ["posoka", "8. Накъде се движат изискванията", `
           <p class="callout callout--plain"><strong>Тълкуване.</strong> Този раздел е нашият прочит на източниците, а не установен факт.</p>
           <h3 class="t-h4">Основите за данни и ИИ стават условие</h3>
-          <p class="t-body">Факт: при фирмите с 50–249 заети използването на ИИ в България е нараснало от 5,5% през 2023 г. до 13,3% през 2025 г., но в ЕС е нараснало от 13,1% до 30,4%. ${citeLocal(2)} ЕК препоръчва на България да ускори използването на ИИ, облачни услуги и анализ на данни сред МСП чрез повече консултантска подкрепа и умения. ${citeLocal(9)}</p>
+          <p class="t-body">Факт: при фирмите с 50–249 заети използването на ИИ в България е нараснало от 5,5% през 2023 г. до 13,3% през 2025 г., но в ЕС е нараснало от 13,1% до 30,4%. ${c(2)} ЕК препоръчва на България да ускори използването на ИИ, облачни услуги и анализ на данни сред МСП чрез повече консултантска подкрепа и умения. ${c(9)}</p>
           <p class="t-body">Тълкуване: ИИ дава резултат само върху подредени основни данни и свързани системи. За повечето средни фирми първата стъпка към ИИ вероятно е измерението „Данни и технологична основа“, а не нов инструмент.</p>
           <h3 class="t-h4">Сигурността и данните стават изискване на купувачите</h3>
-          <p class="t-body">Факт: през февруари 2026 г. България въведе директивата NIS2 в Закона за киберсигурност. Обхватът е 18 сектора, а изискванията за управление на риска и докладване са по-строги за средните и големите предприятия. ${citeLocal(9)} По пулс-проучване на БСК от пролетта на 2025 г. само 9,4% от фирмите се смятат за напълно готови, а над една трета не са започнали подготовка или не знаят за задълженията си. ${citeLocal(9)}</p>
+          <p class="t-body">Факт: през февруари 2026 г. България въведе директивата NIS2 в Закона за киберсигурност. Обхватът е 18 сектора, а изискванията за управление на риска и докладване са по-строги за средните и големите предприятия. ${c(9)} По пулс-проучване на БСК от пролетта на 2025 г. само 9,4% от фирмите се смятат за напълно готови, а над една трета не са започнали подготовка или не знаят за задълженията си. ${c(9)}</p>
           <p class="t-body">Тълкуване: клиентите в обхвата на NIS2 ще изискват повече доказателства за сигурност и от своите доставчици. За износителите въпросниците за сигурност вероятно ще станат част от търговския разговор.</p>`],
 
   ["hipotezi", "9. Хипотези за проверка", `
@@ -362,14 +384,14 @@ const wpSections = [
             ${HYPOTHESES.map((h, i) => `<li>
               <p class="t-label t-label--accent">Хипотеза ${i + 1}</p>
               <h3 class="t-h4">${h.name}</h3>
-              <p class="t-body"><strong>Какво знаем.</strong> ${h.context} ${fmtSrcList(h.src)}</p>
+              <p class="t-body"><strong>Какво знаем.</strong> ${h.context} ${h.src.length ? c(...h.src) : ""}</p>
               <p class="t-body"><strong>Как ще я проверим.</strong> ${h.test}</p>
             </li>`).join("\n            ")}
           </ol>`],
 
   ["kriterii", "Приложение: 30 критерия с описания на нивата", `
           <p class="t-body no-print">Отворете измерение, за да видите критериите. При печат всички се отварят автоматично.</p>
-          ${criteriaAppendix}`],
+          ${x.criteriaAppendix}`],
 
   ["metodologia", "Методологични бележки и ограничения", `
           <ul class="ticks">
@@ -383,23 +405,33 @@ const wpSections = [
           </ul>`],
 
   ["iztochnici", "Източници", `
-          <ol class="sources">
-            ${SOURCES.map((s) => `<li id="src-${s.id}"><span>${s.text}.</span> <a href="${s.url}" rel="noopener">${s.url.replace(/^https?:\/\//, "").slice(0, 90)}${s.url.length > 98 ? "…" : ""}</a></li>`).join("\n            ")}
-          </ol>
+          ${x.sourcesList}
           <p class="t-small">Всички връзки са проверени на 3 ноември 2026 г.</p>`],
 ];
+};
 
-const wpMain = wpSections.map(([id, title, body]) => `
-        <section id="${id}" aria-labelledby="${id}-h">
-          <h2 class="t-h2" id="${id}-h">${title}</h2>${body}
-        </section>`).join("\n");
+const SECTIONS = { bg: sectionsBg(wpParts("bg")), en: sectionsEn(wpParts("en")) };
+const renderSections = (lang) => SECTIONS[lang].map(([id, title, body]) => {
+  const fid = DATA[lang].P + id;
+  return `
+        <section id="${fid}" aria-labelledby="${fid}-h">
+          <h2 class="t-h2" id="${fid}-h">${title}</h2>${body}
+        </section>`;
+}).join("\n");
+const tocHtml = (lang) => `<nav class="toc" aria-labelledby="${DATA[lang].P}toc-h">
+            <p class="t-label t-label--accent" id="${DATA[lang].P}toc-h">${LBL[lang].toc}</p>
+            <ol>
+              ${(lang === "bg" ? TOC : TOC_EN).map(([id, l]) => `<li><a href="#${DATA[lang].P}${id}">${l}</a></li>`).join("\n              ")}
+            </ol>
+          </nav>`;
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Article",
   headline: WP.title,
+  alternativeHeadline: WP_EN.title,
   description: WP.description,
-  inLanguage: "bg",
+  inLanguage: ["bg", "en"],
   datePublished: WP.dateIso,
   dateModified: WP.dateIso,
   author: { "@type": "Person", name: WP.author },
@@ -409,7 +441,7 @@ const jsonLd = {
 
 write(WP.file, {
   title: `${WP.title} · МСП Компас`,
-  titleEn: "Digital maturity of Bulgarian mid-sized exporters · MSP Compass",
+  titleEn: `${WP_EN.title} · MSP Compass`,
   description: WP.description,
   head: `  <meta property="og:type" content="article">
   <meta property="article:published_time" content="${WP.dateIso}">
@@ -422,32 +454,32 @@ window.addEventListener("afterprint", () => document.querySelectorAll("details")
 ${pageHero({
   crumbs: [["index.html", home], ["analizi.html", t("Анализи", "Whitepapers")], [null, t("Цифрова зрялост", "Digital maturity")]],
   label: t("Анализ № 1", "Whitepaper no. 1"),
-  title: WP.title,
-  lead: WP.subtitle,
+  title: t(WP.title, WP_EN.title),
+  lead: t(WP.subtitle, WP_EN.subtitle),
   extra: `<dl class="meta-row meta-row--inverse">
-            <div><dt class="t-label">Автор</dt><dd>${WP.author}, ${WP.org}</dd></div>
-            <div><dt class="t-label">Дата</dt><dd><time datetime="${WP.dateIso}">${WP.dateBg}</time></dd></div>
-            <div><dt class="t-label">Версия</dt><dd>${WP.version.replace("Версия ", "")}</dd></div>
-            <div><dt class="t-label">Четене</dt><dd>${WP.readingTime}</dd></div>
+            <div><dt class="t-label">${t("Автор", "Author")}</dt><dd>${WP.author}, ${t(WP.org, WP_EN.org)}</dd></div>
+            <div><dt class="t-label">${t("Дата", "Date")}</dt><dd><time datetime="${WP.dateIso}">${t(WP.dateBg, WP_EN.dateEn)}</time></dd></div>
+            <div><dt class="t-label">${t("Версия", "Version")}</dt><dd>${WP_EN.version}</dd></div>
+            <div><dt class="t-label">${t("Четене", "Reading time")}</dt><dd>${t(WP.readingTime, WP_EN.readingTime)}</dd></div>
           </dl>`,
 })}
 
     <section class="section">
       <div class="container article">
         <div class="article__main">
-          <div class="notice" data-l="en" lang="en"><strong>English summary.</strong> ${WP.enSummary}</div>
-${wpMain}
+          <div class="wp-lang" data-l="bg">
+${renderSections("bg")}
+          </div>
+          <div class="wp-lang" data-l="en" lang="en">
+${renderSections("en")}
+          </div>
         </div>
-        <aside class="aside no-print" aria-label="Съдържание">
-          <nav class="toc" aria-labelledby="toc-h">
-            <p class="t-label t-label--accent" id="toc-h">Съдържание</p>
-            <ol>
-              ${TOC.map(([id, l]) => `<li><a href="#${id}">${l}</a></li>`).join("\n              ")}
-            </ol>
-          </nav>
+        <aside class="aside no-print" aria-label="${t("Съдържание", "Contents").replace(/<[^>]+>/g, " ").trim()}">
+          <div data-l="bg">${tocHtml("bg")}</div>
+          <div data-l="en" lang="en">${tocHtml("en")}</div>
           <div class="stack stack--sm">
-            <a class="btn btn--primary" href="samoocenka-digitalna-zrelost.html">Направете самооценка ${arrow}</a>
-            <button class="btn btn--secondary" type="button" data-print>Печат или PDF</button>
+            <a class="btn btn--primary" href="samoocenka-digitalna-zrelost.html">${t("Направете самооценка", "Take the self-assessment")} ${arrow}</a>
+            <button class="btn btn--secondary" type="button" data-print>${t("Печат или PDF", "Print or PDF")}</button>
           </div>
         </aside>
       </div>
@@ -602,7 +634,7 @@ const md = (html) => html
   .replace(/\n{3,}/g, "\n\n")
   .trim();
 
-const mdDoc = `# ${WP.title}
+const mdDoc = (lang) => lang === "bg" ? `# ${WP.title}
 
 ${WP.subtitle}
 
@@ -610,9 +642,19 @@ ${WP.subtitle}
 
 > Генерирано от scripts/build-pages.mjs. Не редактирайте ръчно; редактирайте scripts/whitepaper.mjs и scripts/build-pages.mjs.
 
-${wpSections.map(([, title, body]) => `## ${title}\n\n${md(body)}`).join("\n\n")}
+${SECTIONS.bg.map(([, title, body]) => `## ${title}\n\n${md(body)}`).join("\n\n")}
+` : `# ${WP_EN.title}
+
+${WP_EN.subtitle}
+
+Author: ${WP.author}, ${WP_EN.org} · ${WP_EN.dateEn} · Version ${WP_EN.version}
+
+> Generated by scripts/build-pages.mjs. Do not edit by hand; edit scripts/whitepaper-en.mjs instead.
+
+${SECTIONS.en.map(([, title, body]) => `## ${title}\n\n${md(body)}`).join("\n\n")}
 `;
 mkdirSync(resolve(ROOT, "output"), { recursive: true });
-writeFileSync(resolve(ROOT, "output", `${WP.dateIso}-${WP.slug}.md`), mdDoc);
+writeFileSync(resolve(ROOT, "output", `${WP.dateIso}-${WP.slug}.md`), mdDoc("bg"));
+writeFileSync(resolve(ROOT, "output", `${WP.dateIso}-${WP.slug}-en.md`), mdDoc("en"));
 
-console.log(`${count} pages written, plus output/${WP.dateIso}-${WP.slug}.md`);
+console.log(`${count} pages written, plus output/${WP.dateIso}-${WP.slug}.md and -en.md`);
