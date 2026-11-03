@@ -1,5 +1,9 @@
 (() => {
   const root = document.documentElement;
+  const store = {
+    get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable */ } },
+  };
 
   // Theme toggle: light/dark, defaulting to the system setting.
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
@@ -8,9 +12,21 @@
     btn.addEventListener("click", () => {
       const next = currentTheme() === "dark" ? "light" : "dark";
       root.setAttribute("data-theme", next);
-      try { localStorage.setItem("msp-theme", next); } catch (e) { /* storage unavailable */ }
+      store.set("msp-theme", next);
     });
   });
+
+  // Language toggle: both languages are in the page; this only switches which one shows.
+  const setLang = (lang) => {
+    root.setAttribute("data-lang", lang);
+    root.lang = lang;
+    document.title = root.getAttribute(`data-title-${lang}`) || document.title;
+    document.querySelectorAll("[data-set-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.setLang === lang)));
+    store.set("msp-lang", lang);
+    document.dispatchEvent(new CustomEvent("msp:lang", { detail: lang }));
+  };
+  document.querySelectorAll("[data-set-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.setLang)));
+  setLang(root.getAttribute("data-lang") === "en" ? "en" : "bg");
 
   // Mobile navigation.
   const navToggle = document.querySelector(".nav-toggle");
@@ -25,58 +41,13 @@
     navList.addEventListener("click", (e) => { if (e.target.closest("a")) setOpen(false); });
   }
 
-  // Mega menus: one open at a time; click to toggle, Escape or outside click closes.
-  const triggers = document.querySelectorAll(".nav__trigger");
-  const closeAll = (except) => triggers.forEach((t) => {
-    if (t === except) return;
-    t.setAttribute("aria-expanded", "false");
-    document.getElementById(t.getAttribute("aria-controls")).hidden = true;
-  });
-  triggers.forEach((t) => {
-    t.addEventListener("click", () => {
-      const open = t.getAttribute("aria-expanded") !== "true";
-      closeAll(t);
-      t.setAttribute("aria-expanded", String(open));
-      document.getElementById(t.getAttribute("aria-controls")).hidden = !open;
-    });
-  });
-  document.addEventListener("click", (e) => { if (!e.target.closest(".nav__item")) closeAll(); });
-  document.addEventListener("keydown", (e) => {
-    if (e.key !== "Escape") return;
-    const open = [...triggers].find((t) => t.getAttribute("aria-expanded") === "true");
-    closeAll();
-    if (open) open.focus();
-  });
-
-  // Methods filter.
-  const chips = document.querySelectorAll("[data-filter]");
-  const methods = document.querySelectorAll("[data-area]");
-  const status = document.getElementById("filter-status");
-  chips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      const value = chip.dataset.filter;
-      chips.forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
-      let shown = 0;
-      methods.forEach((m) => {
-        const match = value === "all" || m.dataset.area === value;
-        m.hidden = !match;
-        if (match) shown++;
-      });
-      if (status) {
-        status.textContent = value === "all"
-          ? `Показани са всички ${shown} метода.`
-          : `${shown === 1 ? "Показан е 1 метод" : `Показани са ${shown} метода`} в посока „${chip.textContent.trim()}“.`;
-      }
-    });
-  });
-
   // Copy-to-clipboard buttons.
   document.querySelectorAll("[data-copy]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const target = document.querySelector(btn.dataset.copy);
       if (!target) return;
-      const label = btn.textContent;
-      const done = () => { btn.textContent = "Копирано"; setTimeout(() => { btn.textContent = label; }, 1800); };
+      const label = btn.innerHTML;
+      const done = () => { btn.textContent = root.dataset.lang === "en" ? "Copied" : "Копирано"; setTimeout(() => { btn.innerHTML = label; }, 1800); };
       const fallback = () => {
         const range = document.createRange();
         range.selectNodeContents(target);
@@ -92,41 +63,8 @@
     });
   });
 
-  // Contact form: client-side validation only. No backend is connected yet.
-  const form = document.getElementById("contact-form");
-  if (form) {
-    const notice = document.getElementById("form-notice");
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      let firstInvalid = null;
-      form.querySelectorAll("[required]").forEach((field) => {
-        const wrapper = field.closest(".field");
-        wrapper.querySelector(".field__error")?.remove();
-        if (field.dataset.hint === undefined) field.dataset.hint = field.getAttribute("aria-describedby") || "";
-        const hint = field.dataset.hint;
-        const valid = field.value.trim() !== "" && field.checkValidity();
-        field.setAttribute("aria-invalid", String(!valid));
-        if (!valid) {
-          const msg = document.createElement("span");
-          msg.className = "field__error";
-          msg.id = `${field.id}-error`;
-          msg.textContent = field.type === "email" && field.value.trim()
-            ? "Въведете имейл във формат име@домейн.bg."
-            : "Попълнете това поле.";
-          field.setAttribute("aria-describedby", `${hint} ${msg.id}`.trim());
-          wrapper.appendChild(msg);
-          firstInvalid = firstInvalid || field;
-        } else if (hint) {
-          field.setAttribute("aria-describedby", hint);
-        } else {
-          field.removeAttribute("aria-describedby");
-        }
-      });
-      if (firstInvalid) { firstInvalid.focus(); notice.hidden = true; return; }
-      notice.textContent = "Формата все още не е свързана със сървър и съобщението не е изпратено. Моля, копирайте текста и го изпратете на имейла вляво.";
-      notice.hidden = false;
-    });
-  }
+  // Print buttons.
+  document.querySelectorAll("[data-print]").forEach((b) => b.addEventListener("click", () => window.print()));
 
   document.querySelectorAll("[data-year]").forEach((el) => { el.textContent = new Date().getFullYear(); });
 })();

@@ -1,60 +1,66 @@
 # МСП Компас (MSP Compass)
 
-A static website in Bulgarian for Bulgarian small and medium businesses. It turns the frameworks used by top consulting firms into practical, step-by-step guides.
+A static thought-leadership website for Bulgarian export-oriented companies with 30–150 employees. It publishes whitepapers that describe a problem with sourced data, followed by ideas on how consulting approaches could address it. The goal is professional reputation: no pricing and no sales calls to action.
 
-Its structure follows a top-tier consultancy site (Bain-style): a utility bar, dropdown menus, a full-width navy hero, a featured-insights grid, statement bands, list rows with arrows, a figures band, "Накратко" boxes on articles, and a dark footer. The brand keeps its own navy, gold and teal and the compass rose.
-
-It's plain HTML, CSS and JS with no framework. Open `index.html` directly, or host the folder anywhere: GitHub Pages, Netlify Drop or tiiny.host.
+It's plain HTML, CSS and JS with no framework. Open `index.html` directly, or host the folder anywhere (GitHub Pages, Netlify Drop, tiiny.host). Every page works on its own: CSS and JS are inlined at build time.
 
 ## Pages
 
 | File | Page |
 |---|---|
-| `index.html` | Home: hero with the compass, featured insights, belief statement, challenge and sector lists, figures band, five focus areas, CTA |
-| `predizvikatelstva.html` | Six common business challenges, each linked to the right methods |
-| `sektori.html` | Six sectors with typical questions and relevant methods |
-| `metodi.html` | Methods library with a filter by focus area |
-| `metod-*.html` | Six method articles, each with a "Накратко" box, when to use it, steps, typical mistakes, related challenges and more methods |
-| `podhod.html` | Our approach: why the site exists, four principles (the compass points), how we work |
-| `kontakti.html` | Contact details and a form (validated in the browser, **not connected to a backend yet**) |
+| `index.html` | Intro: what MSP Compass is, the latest whitepaper, how we work (four principles) |
+| `analizi.html` | Whitepapers index |
+| `digitalna-zrelost-sredni-iznositeli.html` | Whitepaper no. 1: digital maturity of Bulgarian mid-sized exporters (Bulgarian, with an English summary) |
+| `samoocenka-digitalna-zrelost.html` | Self-assessment: 30 criteria in 8 dimensions, scored in the browser |
+| `kontakti.html` | Email contact only; no form and no data collection |
 
-## How it's built (Figma best practices applied to code)
+Every page has a BG/EN toggle. Site chrome is fully bilingual. The whitepaper and the self-assessment are in Bulgarian, with an English summary shown when EN is selected.
 
-1. **Variables → tokens.** `tokens/tokens.json` (W3C design-token / DTCG format) is the single source of truth. Its structure matches Figma Variables:
-   - `primitives`: the raw palette. Components never use these directly.
-   - `light` / `dark`: two modes of the semantic collection.
-   - `color/inverse/*`: the values for navy sections. The `.on-inverse` class switches any section to them, the same way you'd apply a variable mode to a frame in Figma.
-   - `scale`: spacing on an 8-pt scale, radii, the type scale, shadows and motion.
+The whitepaper is also exported to `output/2026-11-03-digitalna-zrelost-sredni-iznositeli.md` on every build.
 
-   `node scripts/build-tokens.mjs` generates `assets/css/tokens.css` from it. You can bring the JSON into Figma with a token-import plugin such as Tokens Studio.
-2. **Auto layout.** All spacing between elements uses flex/grid `gap`, never margins between siblings.
-3. **Text styles.** Source Serif 4 for headlines and Source Sans 3 for text (both free Google Fonts with full Cyrillic and Bulgarian letter forms; Georgia and system sans as fallbacks), on a fixed type scale: display, h1–h4, lead, body, small, label and stat.
-4. **Components and variants.** Class names match Figma component names:
-   - Button, Link-arrow, Tag, Pill
-   - Insight card (default/lead), Art panel (navy/teal/gold)
-   - Mega menu, Row link, Stat, Bearing, Tile
-   - Glance box, Steps, Split CTA, Page hero, Field
-   - Header, Footer
-5. **Art panels instead of photos.** Each method has its own diagram drawn in SVG: the SWOT grid, the five forces, the Ansoff matrix, the value-chain chevrons, the nine canvas blocks, and the four scorecard perspectives. Sectors use line icons. Swap in photography later if you want.
-6. **Accessibility.**
-   - AA colour contrast in both modes
-   - visible focus rings
-   - tap targets of at least 44px
-   - a skip link and breadcrumbs
-   - dropdown menus that work by keyboard and close with Escape
-   - respects the "reduce motion" setting
+## Privacy
+
+- The self-assessment sends nothing anywhere. Answers stay in the browser's `localStorage` (key `msp-dma-v1`) until the visitor clicks "Изчисти отговорите".
+- No analytics, no cookies, no forms.
+- The pages load fonts from Google Fonts, which sends the visitor's IP address to Google. Self-host the fonts if that is a concern.
 
 ## Editing content
 
-All copy lives in `scripts/content.mjs`. The header, footer, menus and diagrams are in `scripts/layout.mjs`. Page templates are in `scripts/build-pages.mjs`. After editing, run:
+| What | Where |
+|---|---|
+| Whitepaper data: figures, frameworks, 8 dimensions, 30 criteria, hypotheses, sources | `scripts/whitepaper.mjs` |
+| Whitepaper narrative and all page templates | `scripts/build-pages.mjs` |
+| Site-wide copy (principles, email) | `scripts/content.mjs` |
+| Header, footer, navigation, language helpers `t()` / `tb()` | `scripts/layout.mjs` |
+| Self-assessment logic | `assets/js/assessment.js` |
+| Styles | `assets/css/styles.css` (tokens in `tokens/tokens.json`) |
+
+Every figure in `scripts/whitepaper.mjs` carries a source id from `SOURCES`. Keep it that way: no figure without a source.
+
+After editing, run:
 
 ```sh
-node scripts/build-pages.mjs   # regenerate all HTML pages
+node scripts/build-pages.mjs   # regenerate all HTML pages and the Markdown export
 node scripts/build-tokens.mjs  # only if you changed tokens/tokens.json
 ```
+
+To preview locally:
+
+```sh
+python3 -m http.server 8000    # then open http://localhost:8000
+```
+
+## How it's built (Figma best practices applied to code)
+
+1. **Variables → tokens.** `tokens/tokens.json` (W3C design-token / DTCG format) is the single source of truth, structured like Figma Variables (primitives, light/dark modes, inverse colours, scale). `node scripts/build-tokens.mjs` generates `assets/css/tokens.css`.
+2. **Auto layout.** All spacing between elements uses flex/grid `gap`.
+3. **Text styles.** Source Serif 4 for headlines and Source Sans 3 for text, both with full Cyrillic.
+4. **Components.** Class names match Figma component names: Button, Link-arrow, Insight card, Bearing, Glance box, Steps, Page hero, Data table, Callout, Level badge.
+5. **Accessibility.** AA contrast in both themes, visible focus rings, 44px tap targets, skip link, breadcrumbs, keyboard-operable form controls, reduced-motion support. Wide tables stack into cards on phones.
+6. **Print.** The whitepaper and the self-assessment have a print stylesheet; "Печат или PDF" opens the browser's print dialog.
 
 ## To do before going live
 
 - Replace the placeholder email `info@mspkompas.bg` in `scripts/content.mjs`.
-- Connect the contact form to a backend, e.g. Formspree or Netlify Forms.
-- Write the sector guides (currently marked "Наръчник в подготовка").
+- Add the production domain, then a canonical URL and `og:url` per page.
+- Decide whether to self-host fonts (see Privacy).
