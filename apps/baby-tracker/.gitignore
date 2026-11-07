@@ -1,0 +1,4 @@
+# Local Supabase settings — never commit
+web/config.js
+.env
+*.csv

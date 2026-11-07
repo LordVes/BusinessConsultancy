@@ -28,6 +28,8 @@ I am a management consultant who wants to improve his AI proficiency and impleme
 - `output/` - Finished deliverables (reports, drafts, analysis, memos)
 - `resources/` - Reference docs and templates
 - `agents/` - Code for any agents built here, one subfolder per agent (create when the first agent is built)
+- `apps/` - Standalone applications, one subfolder per app
+  - `apps/baby-tracker/` - Bulgarian iPhone PWA + Supabase Postgres for tracking baby feeding, sleep, diapers and health (see its README)
 
 ## Secrets and Client Data
 
@@ -40,4 +42,7 @@ To be decided: language (Python or TypeScript) and framework (Claude API or Clau
 
 ## Commands
 
-None yet. Add them here when the first agent is built.
+- Baby tracker, run locally: `cd apps/baby-tracker/web && python3 -m http.server 8000` (needs `web/config.js`, git-ignored)
+- Baby tracker, database: run `apps/baby-tracker/supabase/schema.sql` in the Supabase SQL Editor
+
+Add agent commands here when the first agent is built.
