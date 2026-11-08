@@ -70,6 +70,20 @@ create table if not exists public.events (
   )
 );
 
+-- v2: dual breastfeeding timer (left/right seconds, which side is running).
+-- "add column if not exists" makes this safe to re-run on an existing database.
+alter table public.events add column if not exists left_sec        integer check (left_sec  >= 0);
+alter table public.events add column if not exists right_sec       integer check (right_sec >= 0);
+alter table public.events add column if not exists active_side     text check (active_side in ('left', 'right'));
+alter table public.events add column if not exists side_started_at timestamptz;
+alter table public.events add column if not exists last_side       text check (last_side in ('left', 'right'));
+
+comment on column public.events.left_sec        is 'Breastfeeding: seconds on the left side (completed segments).';
+comment on column public.events.right_sec       is 'Breastfeeding: seconds on the right side (completed segments).';
+comment on column public.events.active_side     is 'Breastfeeding timer: side currently running (NULL = paused/finished).';
+comment on column public.events.side_started_at is 'Breastfeeding timer: when the active side segment started.';
+comment on column public.events.last_side       is 'Breastfeeding: side used last in this session.';
+
 comment on table  public.events          is 'Активности: хранене, сън, пелени/гърне, здраве.';
 comment on column public.events.type     is
   'feeding: breast|bottle|solids|pumping; sleep: nap|night; '
@@ -152,9 +166,14 @@ create policy events_owner_all on public.events
 -- ---------------------------------------------------------------------
 -- Analysis views (respect RLS via security_invoker)
 -- Times are shown in Bulgarian local time (Europe/Sofia).
+-- Views are dropped and re-created so new columns can be added on upgrade
+-- (views hold no data — nothing is lost).
 -- ---------------------------------------------------------------------
 
-create or replace view public.v_events
+drop view if exists public.v_daily_summary;
+drop view if exists public.v_events;
+
+create view public.v_events
 with (security_invoker = true) as
 select
   e.id,
@@ -169,6 +188,14 @@ select
   e.amount,
   e.unit,
   e.side,
+  round(e.left_sec  / 60.0, 1)                             as left_min,
+  round(e.right_sec / 60.0, 1)                             as right_min,
+  e.last_side,
+  -- minutes actually fed (left + right) for breastfeeding, else wall-clock duration
+  case when e.type = 'breast' and (e.left_sec is not null or e.right_sec is not null)
+       then round((coalesce(e.left_sec, 0) + coalesce(e.right_sec, 0)) / 60.0, 1)
+       else round(extract(epoch from (e.ended_at - e.started_at)) / 60.0, 1)
+  end                                                      as active_min,
   e.milk_type,
   e.diaper_color,
   e.label,
@@ -183,14 +210,14 @@ join public.children c on c.id = e.child_id;
 
 comment on view public.v_events is 'Всички събития с име на дете, местно време и продължителност. Use for export/analysis.';
 
-create or replace view public.v_daily_summary
+create view public.v_daily_summary
 with (security_invoker = true) as
 select
   child_id,
   child_name,
   day_local,
   count(*) filter (where category = 'feeding' and type in ('breast', 'bottle', 'solids')) as feedings,
-  coalesce(sum(duration_min) filter (where category = 'feeding' and type = 'breast'), 0) as breast_min,
+  coalesce(sum(active_min) filter (where category = 'feeding' and type = 'breast'), 0) as breast_min,
   coalesce(sum(amount) filter (where category = 'feeding' and type = 'bottle' and unit = 'ml'), 0) as bottle_ml,
   coalesce(sum(amount) filter (where category = 'feeding' and type = 'pumping' and unit = 'ml'), 0) as pumped_ml,
   coalesce(round(sum(duration_min) filter (where category = 'sleep') / 60.0, 2), 0) as sleep_hours,

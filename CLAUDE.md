@@ -29,7 +29,7 @@ I am a management consultant who wants to improve his AI proficiency and impleme
 - `resources/` - Reference docs and templates
 - `agents/` - Code for any agents built here, one subfolder per agent (create when the first agent is built)
 - `apps/` - Standalone applications, one subfolder per app
-  - `apps/baby-tracker/` - Bulgarian iPhone PWA + Supabase Postgres for tracking baby feeding, sleep, diapers and health (see its README)
+  - `apps/baby-tracker/` - Bulgarian iPhone PWA + Supabase Postgres: tracking, Gantt schedule, analysis dashboard, WHO growth charts (see its README)
 
 ## Secrets and Client Data
 
