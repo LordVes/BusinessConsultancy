@@ -216,8 +216,12 @@ export function errText(err) {
 // ---------------------------------------------------------------------------
 
 const cfg = window.APP_CONFIG;
+/** Keep only "https://xxxx.supabase.co" — a pasted path such as "/rest/v1/" breaks every request. */
+function baseUrl(u) {
+  try { return new URL(String(u).trim()).origin; } catch { return String(u || '').trim(); }
+}
 export const sb = (cfg && cfg.SUPABASE_URL && !/YOUR-/.test(cfg.SUPABASE_URL + cfg.SUPABASE_ANON_KEY) && window.supabase)
-  ? window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
+  ? window.supabase.createClient(baseUrl(cfg.SUPABASE_URL), String(cfg.SUPABASE_ANON_KEY).trim(), {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
   })
   : null;

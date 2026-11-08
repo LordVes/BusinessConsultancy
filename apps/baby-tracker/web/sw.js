@@ -1,6 +1,6 @@
 // Service worker: caches only the app's own static files so it opens fast.
 // Data from Supabase is NEVER cached (privacy) — those requests bypass it.
-const CACHE = 'baby-tracker-v2';
+const CACHE = 'baby-tracker-v3';
 const ASSETS = [
   './',
   './index.html',
